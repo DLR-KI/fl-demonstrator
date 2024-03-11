@@ -1,0 +1,10 @@
+*
+!docker
+!fl_server
+!fl_server_ai
+!fl_server_api
+!fl_server_core
+!manage.py
+!pyproject.toml
+!README.md
+**/__pycache__

@@ -1,0 +1,87 @@
+site_name: Federated Learning Demonstrator
+
+repo_name: fl-demonstrator
+repo_url: https://github.com/DLR-KI/fl-demonstrator
+#edit_uri: blob/main/docs/
+
+theme:
+  name: material
+  custom_dir: docs/.overrides
+  features:
+    - content.code.annotate
+    - content.code.copy
+    - content.tabs.link
+    - navigation.tabs
+    - navigation.sections
+    #- navigation.expand
+    - navigation.path
+    - navigation.indexes
+    - navigation.top
+    - search.highlight
+    - search.suggest
+  language: en
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+      primary: teal
+      accent: deep purple
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+      primary: teal
+      accent: blue
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  #- pymdownx.blocks.tab:
+  #    alternate_style: true
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.mark
+  - pymdownx.snippets
+  - pymdownx.superfences
+
+plugins:
+  - search
+  - portray
+
+extra:
+  social:
+    - icon: dlr-logo
+      link: https://www.dlr.de/en
+    - icon: dlr-ki
+      link: https://www.dlr.de/ki/en
+    - icon: fontawesome/brands/square-gitlab
+      link: https://github.com/DLR-KI/fl-demonstrator
+
+extra_javascript:
+  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.js
+  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/contrib/auto-render.min.js
+  - javascripts/katex.js
+
+extra_css:
+  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.css
+  - styles/style.css
+
+copyright: |
+  &copy; 2024
+  <a href="https://www.dlr.de/en/ki/about-us/departments/algorithms-hybrid-solutions" target="_blank" rel="noopener">
+    DLR KI ALG
+  </a>

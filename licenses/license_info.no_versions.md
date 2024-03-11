@@ -1,0 +1,70 @@
+| Name                      | License                                             |
+|---------------------------|-----------------------------------------------------|
+| Django                    | BSD License                                         |
+| Faker                     | MIT License                                         |
+| Jinja2                    | BSD License                                         |
+| MarkupSafe                | BSD License                                         |
+| PyYAML                    | MIT License                                         |
+| amqp                      | BSD License                                         |
+| ansi                      | MIT License                                         |
+| asgiref                   | BSD License                                         |
+| async-timeout             | Apache Software License                             |
+| attrs                     | MIT License                                         |
+| billiard                  | BSD License                                         |
+| celery                    | BSD License                                         |
+| certifi                   | Mozilla Public License 2.0 (MPL 2.0)                |
+| charset-normalizer        | MIT License                                         |
+| click                     | BSD License                                         |
+| click-didyoumean          | MIT License                                         |
+| click-plugins             | BSD License                                         |
+| click-repl                | MIT                                                 |
+| cmake                     | Apache Software License; BSD License                |
+| django-cors-headers       | MIT License                                         |
+| django-polymorphic        | BSD License                                         |
+| django-redis              | BSD License                                         |
+| djangorestframework       | BSD License                                         |
+| dlr-logging               | Apache Software License                             |
+| docstring-parser          | MIT License                                         |
+| drf-spectacular           | BSD License                                         |
+| filelock                  | The Unlicense (Unlicense)                           |
+| fl-demonstrator           | Apache Software License                             |
+| idna                      | BSD License                                         |
+| inflection                | MIT License                                         |
+| jsonschema                | MIT License                                         |
+| jsonschema-specifications | MIT License                                         |
+| kombu                     | BSD License                                         |
+| lit                       | Apache Software License                             |
+| marshmallow               | MIT License                                         |
+| mpmath                    | BSD License                                         |
+| networkx                  | BSD License                                         |
+| numpy                     | BSD License                                         |
+| nvidia-cublas-cu11        | Other/Proprietary License                           |
+| nvidia-cuda-cupti-cu11    | Other/Proprietary License                           |
+| nvidia-cuda-nvrtc-cu11    | Other/Proprietary License                           |
+| nvidia-cuda-runtime-cu11  | Other/Proprietary License                           |
+| nvidia-cudnn-cu11         | Other/Proprietary License                           |
+| nvidia-cufft-cu11         | Other/Proprietary License                           |
+| nvidia-curand-cu11        | Other/Proprietary License                           |
+| nvidia-cusolver-cu11      | Other/Proprietary License                           |
+| nvidia-cusparse-cu11      | Other/Proprietary License                           |
+| nvidia-nccl-cu11          | Other/Proprietary License                           |
+| nvidia-nvtx-cu11          | Other/Proprietary License                           |
+| packaging                 | Apache Software License; BSD License                |
+| prompt-toolkit            | BSD License                                         |
+| psycopg2-binary           | GNU Library or Lesser General Public License (LGPL) |
+| python-dateutil           | Apache Software License; BSD License                |
+| pytz                      | MIT License                                         |
+| redis                     | MIT License                                         |
+| referencing               | MIT License                                         |
+| requests                  | Apache Software License                             |
+| rpds-py                   | MIT License                                         |
+| six                       | MIT License                                         |
+| sqlparse                  | BSD License                                         |
+| sympy                     | BSD License                                         |
+| torch                     | BSD License                                         |
+| triton                    | MIT License                                         |
+| typing_extensions         | Python Software Foundation License                  |
+| tzdata                    | Apache Software License                             |
+| uritemplate               | Apache Software License; BSD License                |
+| urllib3                   | MIT License                                         |
+| vine                      | BSD License                                         |

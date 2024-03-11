@@ -1,0 +1,353 @@
+[project]
+# This is the name of your project. The first time you publish this
+# package, this name will be registered for you. It will determine how
+# users can install this project, e.g.:
+#
+# $ pip install fl-demonstrator
+#
+# And where it will live on PyPI: https://pypi.org/project/fl-demonstrator/
+#
+# There are some restrictions on what makes a valid project name
+# specification here:
+# https://packaging.python.org/specifications/core-metadata/#name
+name = "fl-demonstrator"  # Required
+
+# Versions should comply with PEP 440:
+# https://www.python.org/dev/peps/pep-0440/
+#
+# For a discussion on single-sourcing the version, see
+# https://packaging.python.org/guides/single-sourcing-package-version/
+version = "0.0.1.dev2"  # Required
+
+# This is a one-line description or tagline of what your project does. This
+# corresponds to the "Summary" metadata field:
+# https://packaging.python.org/specifications/core-metadata/#summary
+description = "Federated Learning Demonstrator"  # Optional
+
+# This is an optional longer description of your project that represents
+# the body of text which users will see when they visit PyPI.
+#
+# Often, this is the same as your README, so you can just read it in from
+# that file directly (as we have already done above)
+#
+# This field corresponds to the "Description" metadata field:
+# https://packaging.python.org/specifications/core-metadata/#description-optional
+readme = "README.md" # Optional
+
+# Specify which Python versions you support. In contrast to the
+# 'Programming Language' classifiers above, 'pip install' will check this
+# and refuse to install the project if the version does not match. See
+# https://packaging.python.org/guides/distributing-packages-using-setuptools/#python-requires
+requires-python = ">=3.10"
+
+# This is either text indicating the license for the distribution, or a file
+# that contains the license
+# https://packaging.python.org/en/latest/specifications/core-metadata/#license
+license = {file = "LICENSE"}
+
+# This field adds keywords for your project which will appear on the
+# project page. What does your project relate to?
+#
+# Note that this is a list of additional keywords, separated
+# by commas, to be used to assist searching for the distribution in a
+# larger catalog.
+keywords = ["ai", "federated learning", "catena-x", "dlr", "demonstrator", "server"]  # Optional
+
+# This should be your name or the name of the organization who originally
+# authored the project, and a valid email address corresponding to the name
+# listed.
+authors = [ # Optional
+  {name="Benedikt Franke", email="benedikt.franke@dlr.de"},
+  {name="Florian Heinrich", email="florian.heinrich@dlr.de"},
+]
+
+# This should be your name or the names of the organization who currently
+# maintains the project, and a valid email address corresponding to the name
+# listed.
+maintainers = [ # Optional
+  # {name="Jane Doe", email="jane.doe@example.com"}
+]
+
+# Classifiers help users find your project by categorizing it.
+#
+# For a list of valid classifiers, see https://pypi.org/classifiers/
+classifiers = [  # Optional
+  # How mature is this project? Common values are
+  #   3 - Alpha
+  #   4 - Beta
+  #   5 - Production/Stable
+  "Development Status :: 3 - Alpha",
+
+  # Indicate who your project is intended for
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering",
+  "Operating System :: OS Independent",
+
+  # Pick your license as you wish
+  "License :: OSI Approved :: Apache Software License",
+
+  # Specify the Python versions you support here. In particular, ensure
+  # that you indicate you support Python 3. These classifiers are *not*
+  # checked by "pip install". See instead "python_requires" below.
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3 :: Only",
+]
+
+# This field lists other packages that your project depends on to run.
+# Any package you put here will be installed by pip when your project is
+# installed, so they must be valid existing projects.
+#
+# For an analysis of this field vs pip's requirements files see:
+# https://packaging.python.org/discussions/install-requires-vs-requirements/
+dependencies = [ # Optional
+  "celery~=5.3.0",
+  "django~=4.0.0",
+  "django-cors-headers~=4.1.0",
+  "django-polymorphic~=3.1.0",
+  "django-redis~=5.2.0",
+  "djangorestframework~=3.14.0",
+  "docstring-parser~=0.15",
+  "drf-spectacular~=0.26.3",
+  "dlr-logging @ git+https://github.com/DLR-KI/fl-logging-base.git@main",  # noqa: E501
+  "Faker~=20.1.0",  # dummy data generation
+  "marshmallow~=3.19.0",
+  "numpy~=1.24.3",
+  "psycopg2-binary~=2.9.6",  # cspell:ignore psycopg
+  "requests~=2.31.0",
+  "torch~=2.0.1",
+]
+
+# List additional groups of dependencies here (e.g. development
+# dependencies). Users will be able to install these using the "extras"
+# syntax, for example:
+#
+#   $ pip install -e ".[all]"
+#
+# Similar to `dependencies` above, these must be valid existing
+# projects.
+[project.optional-dependencies] # Optional
+dev = [
+  "pre-commit~=3.3.2",
+  "tox~=4.5.1",
+]
+test = [
+  "autopep8~=2.0.2",
+  "coverage~=7.2.7",
+  "flake8~=6.0.0",
+  "flake8-pyproject~=1.2.3",
+  "licensecheck",  # no version, install latest version
+  "mypy~=1.3.0",
+  "pytest-django~=4.5.2",
+  "responses~=0.23.1",
+  "shellcheck-py~=0.9.0.6",
+]
+stubs = [
+  "celery-types~=0.17.0",
+  "types-requests~=2.31.0",
+  "types-tabulate~=0.9.0.3",
+]
+doc = [
+  "portray @ git+https://github.com/HeinrichAD/portray.git@v1.8.0-dev",
+  #"plantuml-markdown~=3.9.2",  # post-install: cp plantuml_markdown.py into markdown/extensions
+]
+all = ["fl-demonstrator[dev,test,stubs,doc]"]
+
+# List URLs that are relevant to your project
+#
+# This field corresponds to the "Project-URL" and "Home-Page" metadata fields:
+# https://packaging.python.org/specifications/core-metadata/#project-url-multiple-use
+# https://packaging.python.org/specifications/core-metadata/#home-page-optional
+#
+# Examples listed include a pattern for specifying where the package tracks
+# issues, where the source is hosted, where to say thanks to the package
+# maintainers, and where to support the project financially. The key is
+# what's used to render the link text on PyPI.
+[project.urls]  # Optional
+"Homepage" = "https://github.com/DLR-KI/fl-demonstrator"
+"Bug Tracker" = "https://github.com/DLR-KI/fl-demonstrator/issues"
+#"Changelog" = ""https://github.com/DLR-KI/fl-demonstrator/blob/main/CHANGELOG.md"
+#"Funding" = "https://donate.pypi.org"
+#"Say Thanks!" = "http://saythanks.io/to/example"
+"Source" = "https://github.com/DLR-KI/fl-demonstrator"
+
+# The following would provide a command line executable called `fl-demonstrator`
+# which executes the function `main` inside `__main__.py` from this package when invoked.
+[project.scripts]  # Optional
+#fl-demonstrator = "???.__main__:main"
+
+# This is configuration specific to the `setuptools` build backend.
+# If you are using a different build backend, you will need to change this.
+[tool.setuptools]
+# If there are data files included in your packages that need to be
+# installed, specify them here.
+packages = ["fl_server", "fl_server_ai", "fl_server_api", "fl_server_core"]
+#package-data = {
+#  "fl_server" = ["py.typed"],
+#  "fl_server_ai" = ["py.typed"],
+#  "fl_server_api" = ["py.typed"],
+#  "fl_server_core" = ["py.typed"],
+#}
+
+[build-system]
+# These are the assumed default build requirements from pip:
+# https://pip.pypa.io/en/stable/reference/pip/#pep-517-and-518-support
+requires = ["setuptools>=43.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+#######################################################################################################################
+
+# licensecheck
+# https://github.com/FHPythonUtils/LicenseCheck/blob/master/README.md
+
+[tool.licensecheck]
+using = "PEP631"
+#using = "PEP631:dev;test;stubs;doc"
+zero = true
+ignore_packages = [
+  # https://docs.nvidia.com/cuda/eula/index.html
+  "nvidia-cublas-cu11",
+  "nvidia-cuda-cupti-cu11",
+  "nvidia-cuda-nvrtc-cu11",
+  "nvidia-cuda-runtime-cu11",
+  "nvidia-cudnn-cu11",
+  "nvidia-cufft-cu11",
+  "nvidia-curand-cu11",
+  "nvidia-cusolver-cu11",
+  "nvidia-cusparse-cu11",
+  "nvidia-nccl-cu11",
+  "nvidia-nvtx-cu11",
+]
+
+#######################################################################################################################
+
+# flake8
+# https://flake8.pycqa.org/en/latest/user/configuration.html
+
+[tool.flake8]
+max-line-length = 120
+per-file-ignores = [
+  "__init__.py: F401",
+  "fl_server/settings/*.py: E305,F405",
+  "fl_server_core/migrations/*.py: E501",
+]
+exclude = [
+  ".build",
+  ".git",
+  ".github",
+  ".*_cache",
+  ".tox",
+  ".venv",
+  ".vscode",
+  "*.egg",
+  "*.egg-info",
+  "__pycache__",
+  "Interactive-1.interactive",
+  "fl_server_core/migrations",
+]
+#select = "E,W,F"
+
+#######################################################################################################################
+
+# mypy
+# https://mypy.readthedocs.io/en/stable/config_file.html
+
+[tool.mypy]
+# Global options
+exclude = ".build"  # https://mypy.readthedocs.io/en/stable/config_file.html#confval-exclude
+no_implicit_optional = true
+show_error_codes = true
+#warn_return_any = true
+#warn_unused_configs = true
+#disallow_untyped_defs = true
+
+#plugins =
+#  mypy_django_plugin.main
+#[mypy.plugins.django-stubs]
+#django_settings_module = "fl_server.settings"
+
+# Per-module options
+
+# Ignore missing imports (missing stubs or py.typed)
+[[tool.mypy.overrides]]
+module = [
+  "django.*",
+  "polymorphic.*",
+  "rest_framework.*",
+  "setuptools.*",
+]
+ignore_missing_imports = true
+
+#######################################################################################################################
+
+# coverage
+# https://coverage.readthedocs.io/en/latest/config.html
+
+[tool.coverage.run]
+branch = true
+source = [
+  "fl_server",
+  "fl_server_core",
+  "fl_server_api",
+  "fl_server_ai",
+]
+omit = [
+  "manage.py",
+  "fl_server/**/*",
+  "fl_server_core/migrations/**/*",
+  "fl_server_api/views/johannes.py",
+  "**/tests/*",
+]
+
+[tool.coverage.report]
+omit = [
+  "manage.py",
+  "fl_server/**/*",
+  "fl_server_core/migrations/**/*",
+  "fl_server_api/views/johannes.py",
+]
+
+# Regexes for lines to exclude from consideration
+exclude_lines = [
+  # Have to re-enable the standard pragma
+  "pragma: no cover",
+  "@overload",
+
+  # Don't complain about missing debug-only code:
+  "def __repr__",
+  "if self\\.debug",
+
+  # Don't complain if tests don't hit defensive assertion code:
+  "raise AssertionError",
+  "raise NotImplementedError",
+
+  # Don't complain if non-runnable code isn't run:
+  "if 0:",
+  "if Flase:",
+  "if __name__ == .__main__.:",
+
+  # Don't complain about abstract methods, they aren't run:
+  "@(abc\\.)?abstractmethod",
+]
+
+ignore_errors = true
+skip_empty = true
+
+[tool.coverage.html]
+title = "Coverage report for fl_server"
+
+#######################################################################################################################
+
+# pytest
+# https://docs.pytest.org/en/latest
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "fl_server.settings.development"
+testpaths = [
+  "fl_server/tests",
+  "fl_server_core/tests",
+  "fl_server_api/tests",
+  "fl_server_ai/tests",
+]
+python_files = "test_*.py"

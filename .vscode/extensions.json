@@ -1,0 +1,15 @@
+{
+    "recommendations": [
+        "batisteo.vscode-django",
+        "davidanson.vscode-markdownlint",
+        "donjayamanne.python-environment-manager",
+        "editorconfig.editorconfig",
+        "kevinglasson.cornflakes-linter",
+        "matangover.mypy",
+        "ms-python.flake8",
+        "ms-python.python",
+        "pachwenko.django-test-runner",
+        "streetsidesoftware.code-spell-checker",
+        "streetsidesoftware.code-spell-checker-scientific-terms"
+    ]
+}

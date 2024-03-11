@@ -1,0 +1,23 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Serve Documentation",
+            "type": "python",
+            "request": "launch",
+            "module": "mkdocs",
+            "justMyCode": false,
+            "args": [
+                "serve"
+            ],
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "fl_server.settings.production",
+                "FL_DJANGO_SECRET_KEY": "",
+                "FL_POSTGRES_PASSWD": ""
+            }
+        }
+    ]
+}

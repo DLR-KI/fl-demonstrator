@@ -1,0 +1,170 @@
+name: Main
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  lint-code:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      - name: Install dependencies
+        run: bash ./dev install -e ".[all]"
+      - name: Start static code analysis
+        run: bash ./dev lint-code
+
+  lint-doc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/hydrogen'
+      - name: Install dependencies
+        run: npm install markdownlint-cli2
+      - name: Start type checking
+        run: bash ./dev lint-doc
+
+  lint-scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start shell script analysis tool
+        run: bash ./dev lint-scripts
+
+  mypy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      - name: Install dependencies
+        run: bash ./dev install -e ".[all]"
+      - name: Start type checking
+        run: bash ./dev mypy
+
+  coverage:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: demo
+          POSTGRES_PASSWORD: example
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      - name: Install dependencies
+        run: bash ./dev install -e ".[all]"
+      - name: Start coverage
+        env:
+          FL_POSTGRES_HOST: localhost
+          FL_POSTGRES_PORT: 5432
+          FL_POSTGRES_DBNAME: demo
+          FL_POSTGRES_USER: demo
+          FL_POSTGRES_PASSWD: example
+          FL_REDIS_HOST: localhost
+        run: bash ./dev coverage
+
+  build-and-push-docker-image:
+    needs: [lint-code, lint-doc, lint-scripts, mypy, coverage]
+    permissions:
+      contents: read
+      packages: write
+    env:
+      REGISTRY: ghcr.io
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        docker_target: ['celery', 'django']
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}-${{ matrix.docker_target }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          file: ./docker/${{ matrix.docker_target }}/Dockerfile
+          context: .
+          push: ${{ contains(github.ref, 'main') || startsWith(github.ref, 'refs/tags/v') }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  build-pages:
+    needs: [lint-code, lint-doc, lint-scripts, mypy, coverage]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      - name: Install dependencies
+        run: bash ./dev install -e ".[all]"
+      - name: Build pages
+        run: bash ./dev doc-build
+      - name: Fix permissions
+        run: |
+          chmod -c -R +rX "site/" | while read line; do
+            echo "::warning title=Invalid file permissions automatically fixed::$line"
+          done
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: site
+
+  deploy-pages:
+    if: ${{ contains(github.ref, 'main') || startsWith(github.ref, 'refs/tags/v') }}
+    needs: [build-pages]
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v3

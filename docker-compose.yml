@@ -1,0 +1,53 @@
+version: '3.7'
+
+services:
+  web:
+    image: ghcr.io/dlr-ki/fl-demonstrator-django:main
+    container_name: web
+    restart: always
+    build:
+      context: .
+      dockerfile: ./docker/django/Dockerfile
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - docker/.env
+
+  celery:
+    image: ghcr.io/dlr-ki/fl-demonstrator-celery:main
+    container_name: celery
+    restart: always
+    build:
+      context: .
+      dockerfile: ./docker/celery/Dockerfile
+    depends_on:
+      - redis
+    env_file:
+      - docker/.env
+
+  redis:
+    image: redis
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"  # port mapping only for development
+
+  db:
+    image: postgres
+    container_name: db
+    restart: always
+    ports:
+      - "5432:5432"  # port mapping only for development
+    environment:
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: example
+
+  # adminer:
+  #   image: adminer
+  #   container_name: adminer
+  #   restart: always
+  #   ports:
+  #     - 8080:8080
