@@ -21,3 +21,6 @@ spec:
         envFrom:
           - configMapRef:
               name: {{ include "fmu.fullname" . }}-env
+
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecret }}
