@@ -17,8 +17,8 @@ spec:
         paths:
           # specific path the app should be reachable on the host
           # complete URL for the app consists of host AND path
-          - path: /api/simulate
-            pathType: Prefix
+          - path: /
+            pathType: ImplementationSpecific
             backend:
               service:
                 # Name of the service, the ingress controller should route the traffic to, if the host/path combination is called
