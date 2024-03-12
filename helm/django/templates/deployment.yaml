@@ -16,7 +16,7 @@ spec:
       - name: {{ .Values.name }}
         image: {{ .Values.image.repository }}
         ports:
-        - containerPort: 8080
+        - containerPort: 8000
 
         envFrom:
           - configMapRef:
