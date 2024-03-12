@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: ghcr.io/dlr-ki/fl-demonstrator-django:main
+  repository: ghcr.io/dlr-ki/fl-demonstrator-django
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: main
