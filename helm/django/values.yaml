@@ -2,9 +2,9 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 image:
-  repository: "ghcr.io/dlr-ki/fl-demonstrator-django"
-  pullPolicy: "Always"
-  tag: "main"
+  repository: ghcr.io/dlr-ki/fl-demonstrator-django
+  pullPolicy: Always
+  tag: main
 
 name: "dlr-fl-django"
 
