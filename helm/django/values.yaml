@@ -5,10 +5,10 @@
 replicaCount: 1
 
 image:
-  repository: registry.gitlab.com/dlr-shepard/shepard-edc-proxy
+  repository: ghcr.io/dlr-ki/fl-demonstrator-django:main
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: latest
+  tag: main
 
 imagePullSecrets: []
 nameOverride: ""
@@ -43,7 +43,7 @@ service:
   port: 8080
 
 ingress:
-  enabled: false
+  enabled: true
   className: ""
   annotations:
     {}
