@@ -23,6 +23,7 @@ ingress:
   secret: tls-secret
 
 postgresql:
+  fullnameOverride: postgresql
   auth:
       username: "demo"
       password: "example"

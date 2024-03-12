@@ -1,10 +1,8 @@
 apiVersion: v2
 name: dlr-fl-demonstrator-django
-description: dlr-fl-demonstrator
 type: application
 appVersion: "0.0.1"
 version: 0.0.1
-maintainers: []
 
 dependencies:
   - name: postgresql
