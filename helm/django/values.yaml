@@ -84,3 +84,11 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+postgresql:
+  fullnameOverride: "postgresql"
+  auth:
+    postgresPassword: ""
+    username: "demo"
+    password: "example"
+    database: "demo"
