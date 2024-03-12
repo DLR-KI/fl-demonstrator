@@ -35,7 +35,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: "FL_POSTGRES_HOST"
-              value: "postgresql-0"
+              value: "postgresql"
             - name: "FL_POSTGRES_PORT"
               value: "5432"
             - name: "FL_POSTGRES_DBNAME"
