@@ -1,73 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "fl-demonstrator.fullname" . }}
-  labels:
-    {{- include "fl-demonstrator.labels" . | nindent 4 }}
+  name: {{ .Values.name }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
-  {{- end }}
+  replicas: 1
   selector:
     matchLabels:
-      {{- include "fl-demonstrator.selectorLabels" . | nindent 6 }}
+      app: {{ .Values.name }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       labels:
-        {{- include "fl-demonstrator.selectorLabels" . | nindent 8 }}
+        app: {{ .Values.name }}
     spec:
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      serviceAccountName: {{ include "fl-demonstrator.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          env:
-            - name: "FL_POSTGRES_HOST"
-              value: "postgresql"
-            - name: "FL_POSTGRES_PORT"
-              value: "5432"
-            - name: "FL_POSTGRES_DBNAME"
-              value: "demo"
-            - name: "FL_POSTGRES_USER"
-              value: "demo"
-            - name: "FL_POSTGRES_PASSWD"
-              value: "example"
-            - name: "FL_REDIS_HOST"
-              value: "redis"
-            - name: "FL_DJANGO_SECRET_KEY"
-              value: "django-insecure-*z=iw5n%b--qdim+x5b+j9=^_gq7hq)kk8@7$^(tyn@oc#_8by"
-            - name: "FL_DJANGO_ALLOWED_HOSTS"
-              value: "*"
+      - name: {{ .Values.name }}
+        image: {{ .Values.image.repository }}
+        ports:
+        - containerPort: 8080
 
-          ports:
-            - name: http
-              containerPort: {{ .Values.service.port }}
-              protocol: TCP
-          livenessProbe: null
-          readinessProbe: null
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        envFrom:
+          - configMapRef:
+              name: {{ include "fmu.fullname" . }}-env
+
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecret }}

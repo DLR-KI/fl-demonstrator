@@ -1,94 +1,23 @@
-# Default values for fl-demonstrator.
+---
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
-
-replicaCount: 1
-
 image:
   repository: ghcr.io/dlr-ki/fl-demonstrator-django
   pullPolicy: Always
-  # Overrides the image tag whose default is the chart appVersion.
   tag: main
 
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
+name: dlr-fl-django
 
-serviceAccount:
-  # Specifies whether a service account should be created
-  create: true
-  # Annotations to add to the service account
-  annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
-  name: ""
-
-podAnnotations: {}
-
-podSecurityContext:
-  {}
-  # fsGroup: 2000
-
-securityContext:
-  {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
-
-service:
-  type: ClusterIP
-  port: 8080
+env:
+  FL_POSTGRES_HOST: postgresql
+  FL_POSTGRES_PORT: 5432
+  FL_POSTGRES_DBNAME: demo
+  FL_POSTGRES_USER: demo
+  FL_POSTGRES_PASSWD: example
+  FL_REDIS_HOST: redis
+  FL_DJANGO_SECRET_KEY: django-insecure-*z=iw5n%b--qdim+x5b+j9=^_gq7hq)kk8@7$^(tyn@oc#_8by
+  FL_DJANGO_ALLOWED_HOSTS: "*"
 
 ingress:
-  enabled: true
-  # className: ""
-  annotations:
-    {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: dlr-fl.dev.demo.catena-x.net
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
-
-resources:
-  {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
-
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
-
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
-
-postgresql:
-  fullnameOverride: "postgresql"
-  auth:
-    postgresPassword: ""
-    username: "demo"
-    password: "example"
-    database: "demo"
+  hostname: dlr-fl.dev.demo.catena-x.net
+  secret: tls-secret
