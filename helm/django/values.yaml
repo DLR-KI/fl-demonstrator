@@ -21,3 +21,9 @@ env:
 ingress:
   hostname: dlr-fl.dev.demo.catena-x.net
   secret: tls-secret
+
+postgresql:
+  auth:
+      username: "demo"
+      password: "example"
+      database: "demo"
