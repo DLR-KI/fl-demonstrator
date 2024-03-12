@@ -7,7 +7,6 @@ image:
   tag: "main"
 
 name: "dlr-fl-django"
-imagePullSecret: ""
 
 env:
   FL_POSTGRES_HOST: "postgresql"
