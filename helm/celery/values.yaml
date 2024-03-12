@@ -1,0 +1,29 @@
+---
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+image:
+  repository: ghcr.io/dlr-ki/fl-demonstrator-django:main
+  pullPolicy: Always
+
+name: "dlr-fl-django"
+
+env:
+  FL_POSTGRES_HOST: "postgresql"
+  FL_POSTGRES_PORT: "5432"
+  FL_POSTGRES_DBNAME: "demo"
+  FL_POSTGRES_USER: "demo"
+  FL_POSTGRES_PASSWD: "example"
+  FL_REDIS_HOST: "redis"
+  FL_DJANGO_SECRET_KEY: "django-insecure-*z=iw5n%b--qdim+x5b+j9=^_gq7hq)kk8@7$^(tyn@oc#_8by"
+  FL_DJANGO_ALLOWED_HOSTS: "*"
+
+ingress:
+  hostname: "dlr-fl.dev.demo.catena-x.net"
+  secret: "tls-secret"
+
+postgresql:
+  fullnameOverride: "postgresql"
+  auth:
+      username: "demo"
+      password: "example"
+      database: "demo"

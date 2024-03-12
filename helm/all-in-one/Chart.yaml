@@ -1,0 +1,14 @@
+apiVersion: v2
+name: dlr-fl-demonstrator
+type: application
+appVersion: "0.0.1"
+version: 0.0.1
+
+dependencies:
+  - name: dlr-fl-demonstrator-django
+    version: 0.0.1
+    repository: ../django
+
+  - name: dlr-fl-demonstrator-celery
+    version: 0.0.1
+    repository: ../celery

@@ -1,0 +1,10 @@
+apiVersion: v2
+name: dlr-fl-demonstrator-celery
+type: application
+appVersion: "0.0.1"
+version: 0.0.1
+
+dependencies:
+  - name: redis
+    version: "18.19.2"
+    repository: https://charts.bitnami.com/bitnami
