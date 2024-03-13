@@ -23,7 +23,7 @@ spec:
               service:
                 # Name of the service, the ingress controller should route the traffic to, if the host/path combination is called
                 # Adjust that to your service name
-                name: {{ .Values.name }}
+                name: {{ .Values.name }}-django
                 port:
                   # Port number, the kubernetes service is listening on
                   # Adjust that to your services' port
