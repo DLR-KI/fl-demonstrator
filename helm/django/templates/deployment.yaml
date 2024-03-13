@@ -20,4 +20,4 @@ spec:
 
         envFrom:
           - configMapRef:
-              name: {{ include "fmu.fullname" . }}-django--env
+              name: {{ include "fmu.fullname" . }}-django-env
