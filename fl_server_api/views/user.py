@@ -65,8 +65,8 @@ class User(ViewSet):
         serializer = UserSerializer(get_entity(UserModel, pk=id), context={"request_user_id": request.user.id})
         return Response(serializer.data)
 
-    @decorators.authentication_classes([])
-    @decorators.permission_classes([])
+    #@decorators.authentication_classes([])
+    #@decorators.permission_classes([])
     @extend_schema(
         responses={
             status.HTTP_200_OK: UserSerializer,
