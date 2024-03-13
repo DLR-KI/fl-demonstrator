@@ -7,7 +7,7 @@ postgresql:
 
 redis:
   fullnameOverride: "redis"
-  architecture: standard
+  architecture: standalone
   auth:
     enabled: false
     
