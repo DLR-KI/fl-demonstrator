@@ -7,7 +7,7 @@ postgresql:
 
   redis:
     fullnameOverride: "redis"
-    # auth:
-    #     username: "demo"
-    #     password: "example"
-    #     database: "demo"
+    architecture: standard
+    auth:
+      enabled: false
+      
