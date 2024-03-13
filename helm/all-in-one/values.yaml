@@ -1,1 +1,13 @@
----
+postgresql:
+  fullnameOverride: "postgresql"
+  auth:
+      username: "demo"
+      password: "example"
+      database: "demo"
+
+  redis:
+    fullnameOverride: "redis"
+    # auth:
+    #     username: "demo"
+    #     password: "example"
+    #     database: "demo"
