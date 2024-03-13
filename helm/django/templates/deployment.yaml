@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.name }}
+  name: {{ .Values.name }}-django
 spec:
   replicas: 1
   selector:
@@ -20,4 +20,4 @@ spec:
 
         envFrom:
           - configMapRef:
-              name: {{ include "fmu.fullname" . }}-env
+              name: {{ include "fmu.fullname" . }}-django--env
