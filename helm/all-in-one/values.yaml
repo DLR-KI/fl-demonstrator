@@ -5,9 +5,9 @@ postgresql:
       password: "example"
       database: "demo"
 
-  redis:
-    fullnameOverride: "redis"
-    architecture: standard
-    auth:
-      enabled: false
-      
+redis:
+  fullnameOverride: "redis"
+  architecture: standard
+  auth:
+    enabled: false
+    
