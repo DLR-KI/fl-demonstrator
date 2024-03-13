@@ -12,3 +12,12 @@ dependencies:
   - name: dlr-fl-demonstrator-celery
     version: 0.0.1
     repository: file://../celery
+
+  - name: redis
+    version: "18.19.2"
+    repository: https://charts.bitnami.com/bitnami
+
+  - name: postgresql
+    version: "14.3.3"
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled 
