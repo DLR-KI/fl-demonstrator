@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
+# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist, ValidationError as ValidationException
 from django.core.files.uploadedfile import UploadedFile

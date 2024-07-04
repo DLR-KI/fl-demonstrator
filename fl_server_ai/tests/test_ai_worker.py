@@ -1,67 +1,75 @@
+# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
+# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 from django.test import TestCase
-import pickle
 import torch
 from unittest.mock import MagicMock, patch
 
 from fl_server_core.models.model import SWAGModel
 from fl_server_core.models.training import Training, TrainingState, UncertaintyMethod
 from fl_server_core.tests import Dummy
+from fl_server_core.utils.torch_serialization import from_torch_module, from_torch_tensor
 
 from ..notification import Notification
 from ..trainer import ModelTrainer, process_trainer_task
 from ..trainer.events import SWAGRoundFinished, TrainingRoundFinished
 from ..trainer.options import TrainerOptions
 
-from .test_aggregation import _create_model_and_init
+from .test_aggregation import _create_torchscript_model_and_init
 
 
 class AiWorkerTest(TestCase):
 
     def test_process_training_good(self):
-        training = Dummy.create_training(state=TrainingState.ONGOING, locked=True)
-        model1 = _create_model_and_init(0)
-        model2 = _create_model_and_init(1)
+        base_model = Dummy.create_model(weights=from_torch_module(_create_torchscript_model_and_init(0)))
+        training = Dummy.create_training(state=TrainingState.ONGOING, locked=True, model=base_model)
+        model1 = _create_torchscript_model_and_init(0)
+        model2 = _create_torchscript_model_and_init(1)
+
         Dummy.create_model_update(
             base_model=training.model,
             owner=training.participants.all()[0],
             round=0,
-            weights=pickle.dumps(model1),
+            weights=from_torch_module(model1),  # torchscript model
         )
         Dummy.create_model_update(
             base_model=training.model,
             owner=training.participants.all()[1],
             round=0,
-            weights=pickle.dumps(model2)
+            weights=from_torch_module(model2)  # torchscript model
         )
         with self.assertLogs(level="INFO"):
             ModelTrainer(training, TrainerOptions(skip_model_tests=True)).handle_cls(TrainingRoundFinished)
-        res = training.model.get_torch_model()
-        torch.testing.assert_close(res[0].weight, torch.ones_like(res[0].weight) * 0.5)
-        torch.testing.assert_close(res[3].weight, torch.ones_like(res[3].weight) * 0.5)
+        res = training.model.get_torch_model().state_dict()
+        torch.testing.assert_close(res["0.weight"], torch.ones_like(res["0.weight"]) * 0.5)
+        torch.testing.assert_close(res["3.weight"], torch.ones_like(res["3.weight"]) * 0.5)
 
     @patch("fl_server_ai.aggregation.mean.MeanAggregation.aggregate")
     def test_process_training_bad1(self, aggregate_updates: MagicMock):
-        training = Dummy.create_training(state=TrainingState.ONGOING, locked=True)
-        model1 = _create_model_and_init(0)
-        model2 = _create_model_and_init(1)
-        model3 = _create_model_and_init(500)
+        base_model = Dummy.create_model(weights=from_torch_module(_create_torchscript_model_and_init(0)))
+        training = Dummy.create_training(state=TrainingState.ONGOING, locked=True, model=base_model)
+        model1 = _create_torchscript_model_and_init(0)
+        model2 = _create_torchscript_model_and_init(1)
+        model3 = _create_torchscript_model_and_init(500)
         Dummy.create_model_update(
             base_model=training.model,
             owner=training.participants.all()[0],
             round=0,
-            weights=pickle.dumps(model1),
+            weights=from_torch_module(model1),  # torchscript model
         )
         Dummy.create_model_update(
             base_model=training.model,
             owner=training.participants.all()[1],
             round=0,
-            weights=pickle.dumps(model2)
+            weights=from_torch_module(model2)  # torchscript model
         )
         Dummy.create_model_update(
             base_model=training.model,
             owner=training.participants.all()[1],
             round=0,
-            weights=pickle.dumps(model3)
+            weights=from_torch_module(model3)  # torchscript model
         )
         with self.assertLogs(level="ERROR"):
             with self.assertRaises(RuntimeError):
@@ -71,13 +79,14 @@ class AiWorkerTest(TestCase):
 
     @patch("fl_server_ai.aggregation.mean.MeanAggregation.aggregate")
     def test_process_training_bad2(self, aggregate_updates: MagicMock):
-        training = Dummy.create_training(state=TrainingState.ONGOING, locked=True)
-        model1 = _create_model_and_init(0)
+        base_model = Dummy.create_model(weights=from_torch_module(_create_torchscript_model_and_init(0)))
+        training = Dummy.create_training(state=TrainingState.ONGOING, locked=True, model=base_model)
+        model1 = _create_torchscript_model_and_init(0)
         Dummy.create_model_update(
             base_model=training.model,
             owner=training.participants.all()[0],
             round=0,
-            weights=pickle.dumps(model1),
+            weights=from_torch_module(model1),  # torchscript model
         )
         with self.assertLogs(level="ERROR"), self.assertRaises(RuntimeError):
             ModelTrainer(training, TrainerOptions(skip_model_tests=True)).handle_cls(TrainingRoundFinished)
@@ -88,11 +97,12 @@ class AiWorkerTest(TestCase):
     def test_process_training(self, send_notification):
         model = Dummy.create_model(
             model_cls=SWAGModel,
-            weights=pickle.dumps(torch.nn.Sequential(  # this model has exactly 15 parameters
+            weights=from_torch_module(torch.jit.script(torch.nn.Sequential(
+                # this model has exactly 15 parameters
                 torch.nn.Linear(1, 5),
                 torch.nn.ReLU(),
                 torch.nn.Linear(5, 1)
-            )),
+            ))),
             round=100
         )
         training = Dummy.create_training(
@@ -107,14 +117,14 @@ class AiWorkerTest(TestCase):
             key="SWAG First Moment Local",
             model=model,
             reporter=training.participants.all()[0],
-            value_binary=pickle.dumps(torch.zeros(15))
+            value_binary=from_torch_tensor(torch.zeros(15))
         )
         Dummy.create_metric(
             step=100,
             key="SWAG Second Moment Local",
             model=model,
             reporter=training.participants.all()[0],
-            value_binary=pickle.dumps(torch.ones(15))
+            value_binary=from_torch_tensor(torch.ones(15))
         )
         Dummy.create_metric(
             step=100,
@@ -128,14 +138,14 @@ class AiWorkerTest(TestCase):
             key="SWAG First Moment Local",
             model=model,
             reporter=training.participants.all()[1],
-            value_binary=pickle.dumps(torch.zeros(15))
+            value_binary=from_torch_tensor(torch.zeros(15))
         )
         Dummy.create_metric(
             step=100,
             key="SWAG Second Moment Local",
             model=model,
             reporter=training.participants.all()[1],
-            value_binary=pickle.dumps(torch.ones(15))
+            value_binary=from_torch_tensor(torch.ones(15))
         )
         Dummy.create_metric(
             step=100,

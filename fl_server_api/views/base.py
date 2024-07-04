@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
+# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 from logging import getLogger
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -5,6 +10,9 @@ from rest_framework.viewsets import ViewSet as DjangoViewSet
 
 
 class BasicAuthAllowingTokenAuthInUrl(BasicAuthentication):
+    """
+    A class that extends the BasicAuthentication to allow token authentication in the URL.
+    """
 
     def authenticate_credentials(self, userid_or_token, password, request=None):
         """
@@ -30,14 +38,14 @@ class BasicAuthAllowingTokenAuthInUrl(BasicAuthentication):
 
 class ViewSet(DjangoViewSet):
     """
-    DLR Federated Learning base ViewSet including default authentication and permission classes.
+    A base ViewSet that includes default authentication and permission classes.
 
-    Authentication as well as permission classes can not only be overwritten by the child class, but also by the
-    request method. This allows to have different authentication and permission classes for each request method.
-    To overwrite the authentication and permission classes for a specific request method, simply add the designated
-    decorators: `@decorators.authentication_classes` and `@decorators.permission_classes` from
+    This class allows the authentication and permission classes to be overwritten by the child class or the request
+    method. To overwrite the authentication and permission classes for a specific request method, use the
+    `@decorators.authentication_classes` and `@decorators.permission_classes` decorators from
     `rest_framework.decorators`.
     """
+
     _logger = getLogger("fl.server")
 
     # Note: BasicAuthentication is sensles here since it will and can't never be called due to
@@ -50,21 +58,50 @@ class ViewSet(DjangoViewSet):
         BasicAuthentication,
         SessionAuthentication,
     ]
+    """The authentication classes for the ViewSet."""
     permission_classes = [IsAuthenticated]
+    """The permission classes for the ViewSet."""
 
     def get_authenticators(self):
+        """
+        Get the authenticators for the ViewSet.
+
+        This method gets the view method and, if it has authentication classes defined via the decorator, returns them.
+        Otherwise, it falls back to the default authenticators.
+
+        Returns:
+            list: The authenticators for the ViewSet.
+        """
         if method := self._get_view_method():
             if hasattr(method, "authentication_classes"):
                 return method.authentication_classes
         return super().get_authenticators()
 
     def get_permissions(self):
+        """
+        Get the permissions for the ViewSet.
+
+        This method gets the view method and, if it has permission classes defined via the decorator, returns them.
+        Otherwise, it falls back to the default permissions.
+
+        Returns:
+            list: The permissions for the ViewSet.
+        """
         if method := self._get_view_method():
             if hasattr(method, "permission_classes"):
                 return method.permission_classes
         return super().get_permissions()
 
     def _get_view_method(self):
+        """
+        Get the view method for the ViewSet.
+
+        This method gets the action or the HTTP method of the request and returns the corresponding method of the
+        ViewSet, or `None` if no such method is found.
+
+        Returns:
+            Callable | None: The view method for the ViewSet, or `None` if no such method is found.
+        """
         if hasattr(self, "action") and self.action is not None:
             return self.__getattribute__(self.action)
         if hasattr(self.request, "method") and self.request.method is not None:

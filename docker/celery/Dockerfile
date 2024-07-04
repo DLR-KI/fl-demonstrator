@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
+# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 FROM python:3.10-slim
 
 # system dependencies
@@ -15,6 +20,7 @@ RUN apt-get update && \
 # add user: celery
 RUN useradd -ms /bin/bash celery
 USER celery
+RUN mkdir /home/celery/app
 WORKDIR /home/celery/app
 
 # install dependencies

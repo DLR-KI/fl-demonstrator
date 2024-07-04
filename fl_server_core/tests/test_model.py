@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
+# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 from django.test import TestCase
 
 from ..models.model import clone_model
@@ -28,3 +33,4 @@ class ModelTest(TestCase):
         self.assertEqual(model1.owner, model2.owner)
         self.assertEqual(model1.round, model2.round)
         self.assertEqual(model1.weights, model2.weights)
+        self.assertEqual(model1.preprocessing, model2.preprocessing)

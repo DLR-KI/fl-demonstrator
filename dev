@@ -1,4 +1,10 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
+# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ###############################################################################
 # Helper commands #
 ###################
@@ -72,8 +78,7 @@ function help() {
   info2 "    coverage-report     Generate test coverage report"
   info2 "    doc                 Start documentation server"
   info2 "    doc-build           Build documentation"
-  info2 "    licenses            Generate licenses"
-  info2 "    licenses-check      Check licenses"
+  info2 "    licenses            Check licenses"
   info2 "    safety-check        Check dependencies for known security vulnerabilities"
   info2 "    install             Install package"
   info2 "    clean               Clean up local files"
@@ -202,8 +207,6 @@ function db-reset() {
     docker compose up -d db
     info "Clear redis cache"
     docker exec -it redis redis-cli FLUSHALL
-    sleep 2
-    $(MAKE) --no-print-directory migration
   else
     warn "Remove all unused anonymous volumes"
     docker volume prune -f
@@ -216,7 +219,7 @@ function docker-build() {
   project_name="$(awk -F "=" '/name/ {print $2}' "${PROJECT_ROOT}/pyproject.toml" | awk -F'"' '{print $2}' | awk NF | head -n 1)"
   celery_image_name="local/${project_name}-celery:latest"
   django_image_name="local/${project_name}-django:latest"
-  info "build docker image: ${django_image_name}"
+  info "build docker image: ${celery_image_name}"
   docker build -f ./docker/celery/Dockerfile -t "${celery_image_name}" . "$@"
   info "build docker image: ${django_image_name}"
   docker build -f ./docker/django/Dockerfile -t "${django_image_name}" . "$@"
@@ -325,18 +328,10 @@ function doc-build() {
 }
 
 function licenses() {
-  info "generate licenses"
-  # create a tox environment and pull in license information
-  license_dir="${PROJECT_ROOT}/licenses"
-  mkdir -p "${license_dir}"
-  python -m tox --recreate -e licenses
-}
-
-function licenses-check() {
   info "search for license conflicts"
   licensecheck
-  info "search for license changes"
-  git --no-pager diff --exit-code "${PROJECT_ROOT}/licenses/license_info.no_versions.csv"
+  info "search for non-compliant files with REUSE"
+  python -m reuse lint
 }
 
 function safety-check() {

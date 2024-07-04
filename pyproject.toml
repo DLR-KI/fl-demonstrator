@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
+# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 [project]
 # This is the name of your project. The first time you publish this
 # package, this name will be registered for you. It will determine how
@@ -17,7 +22,7 @@ name = "fl-demonstrator"  # Required
 #
 # For a discussion on single-sourcing the version, see
 # https://packaging.python.org/guides/single-sourcing-package-version/
-version = "0.0.1.dev2"  # Required
+version = "0.0.2.dev0"  # Required
 
 # This is a one-line description or tagline of what your project does. This
 # corresponds to the "Summary" metadata field:
@@ -43,7 +48,7 @@ requires-python = ">=3.10"
 # This is either text indicating the license for the distribution, or a file
 # that contains the license
 # https://packaging.python.org/en/latest/specifications/core-metadata/#license
-license = {file = "LICENSE"}
+license = {file = "LICENSES/Apache-2.0.txt"}
 
 # This field adds keywords for your project which will appear on the
 # project page. What does your project relate to?
@@ -116,7 +121,9 @@ dependencies = [ # Optional
   "numpy~=1.24.3",
   "psycopg2-binary~=2.9.6",  # cspell:ignore psycopg
   "requests~=2.31.0",
-  "torch~=2.0.1",
+  "torch~=2.3",
+  "torchinfo~=1.8",
+  "torchvision~=0.18",
 ]
 
 # List additional groups of dependencies here (e.g. development
@@ -130,6 +137,7 @@ dependencies = [ # Optional
 [project.optional-dependencies] # Optional
 dev = [
   "pre-commit~=3.3.2",
+  "reuse~=3.0.2",
   "tox~=4.5.1",
 ]
 test = [
@@ -189,6 +197,7 @@ packages = ["fl_server", "fl_server_ai", "fl_server_api", "fl_server_core"]
 #  "fl_server_api" = ["py.typed"],
 #  "fl_server_core" = ["py.typed"],
 #}
+license-files = ["LICENSES/*.txt"]
 
 [build-system]
 # These are the assumed default build requirements from pip:
@@ -206,18 +215,24 @@ using = "PEP631"
 #using = "PEP631:dev;test;stubs;doc"
 zero = true
 ignore_packages = [
+  # Intel oneAPI Math Kernel Library (mkl)
+  # Comes with PyTorch 2.3.0
+  # https://cdrdv2-public.intel.com/749362/intel-simplified-license-software-october-2022.pdf
+  # Note: - Usage and Redistribution is allowed. But Redistribution requires a copyright notice
+  #       - The docker container do not include the mkl library (at the moment)
+  "mkl",
   # https://docs.nvidia.com/cuda/eula/index.html
-  "nvidia-cublas-cu11",
-  "nvidia-cuda-cupti-cu11",
-  "nvidia-cuda-nvrtc-cu11",
-  "nvidia-cuda-runtime-cu11",
-  "nvidia-cudnn-cu11",
-  "nvidia-cufft-cu11",
-  "nvidia-curand-cu11",
-  "nvidia-cusolver-cu11",
-  "nvidia-cusparse-cu11",
-  "nvidia-nccl-cu11",
-  "nvidia-nvtx-cu11",
+  "nvidia-cublas-cu12",
+  "nvidia-cuda-cupti-cu12",
+  "nvidia-cuda-nvrtc-cu12",
+  "nvidia-cuda-runtime-cu12",
+  "nvidia-cudnn-cu12",
+  "nvidia-cufft-cu12",
+  "nvidia-curand-cu12",
+  "nvidia-cusolver-cu12",
+  "nvidia-cusparse-cu12",
+  "nvidia-nccl-cu12",
+  "nvidia-nvtx-cu12",
 ]
 
 #######################################################################################################################
@@ -276,6 +291,7 @@ module = [
   "polymorphic.*",
   "rest_framework.*",
   "setuptools.*",
+  "torchvision.*",
 ]
 ignore_missing_imports = true
 

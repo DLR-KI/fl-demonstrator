@@ -2,6 +2,12 @@
 title: Home
 hide: navigation
 ---
+<!--
+SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
+SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
 
 <!-- markdownlint-disable-next-line MD025 -->
 # Federated Learning Demonstrator

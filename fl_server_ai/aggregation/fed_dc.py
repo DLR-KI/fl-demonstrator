@@ -1,10 +1,12 @@
-import torch
-from typing import Sequence
+# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
+# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
+#
+# SPDX-License-Identifier: Apache-2.0
 
-from .base import Aggregation
+from .mean import MeanAggregation
 
 
-class FedDC(Aggregation):
+class FedDC(MeanAggregation):
     """
     FedDC (Federated daisy-chaining)
 
@@ -17,13 +19,4 @@ class FedDC(Aggregation):
 
     Paper: [Picking Daisies in Private: Federated Learning from Small Datasets](https://openreview.net/forum?id=GVDwiINkMR)
     """  # noqa: E501
-
-    @torch.no_grad()
-    def aggregate(
-        self,
-        models: Sequence[torch.nn.Module],
-        model_sample_sizes: Sequence[int],
-        *,
-        deepcopy: bool = True
-    ) -> torch.nn.Module:
-        raise NotImplementedError("FedDC is not implemented yet!")
+    pass

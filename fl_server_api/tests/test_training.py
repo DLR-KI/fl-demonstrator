@@ -1,10 +1,16 @@
+# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
+# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
+#
+# SPDX-License-Identifier: Apache-2.0
+
+from django.core.exceptions import ObjectDoesNotExist
 import json
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 from django.test import TestCase
 
 from fl_server_core.tests import BASE_URL, Dummy
-from fl_server_core.models.training import TrainingState
+from fl_server_core.models.training import Training, TrainingState
 
 
 class TrainingTests(TestCase):
@@ -125,11 +131,45 @@ class TrainingTests(TestCase):
             response = self.client.get(f"{BASE_URL}/trainings/{training.id}/")
         self.assertEqual(response.status_code, 403)
 
+    def test_delete_training_as_actor(self):
+        training = Dummy.create_training(actor=self.user)
+        response = self.client.delete(f"{BASE_URL}/trainings/{training.id}/")
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual("Training removed!", body["detail"])
+        self.assertRaises(ObjectDoesNotExist, Training.objects.get, pk=training.id)
+
+    def test_delete_training_as_participant(self):
+        participants = [Dummy.create_client(), self.user, Dummy.create_client()]
+        training = Dummy.create_training(participants=participants)
+        with self.assertLogs("django.request", level="WARNING"):
+            response = self.client.delete(f"{BASE_URL}/trainings/{training.id}/")
+        self.assertEqual(response.status_code, 403)
+        body = response.json()
+        self.assertEqual("You are not the owner the training.", body["detail"])
+        self.assertIsNotNone(Training.objects.get(pk=training.id))
+
+    def test_delete_training_as_other_user(self):
+        training = Dummy.create_training()
+        with self.assertLogs("django.request", level="WARNING"):
+            response = self.client.delete(f"{BASE_URL}/trainings/{training.id}/")
+        self.assertEqual(response.status_code, 403)
+        body = response.json()
+        self.assertEqual("You are not the owner the training.", body["detail"])
+        self.assertIsNotNone(Training.objects.get(pk=training.id))
+
+    def test_delete_non_existing_training(self):
+        training_id = str(uuid4())
+        with self.assertLogs("django.request", level="WARNING"):
+            response = self.client.delete(f"{BASE_URL}/trainings/{training_id}/")
+        self.assertEqual(response.status_code, 400)
+        body = response.json()
+        self.assertEqual(f"Training {training_id} not found.", body["detail"])
+
     def test_register_clients_good(self):
         training = Dummy.create_training(actor=self.user)
         users = [str(Dummy.create_user(username=f"client{i}").id) for i in range(1, 5)]
         request_body = dict(clients=users)
-
         response = self.client.put(
             f"{BASE_URL}/trainings/{training.id}/clients/",
             json.dumps(request_body)

@@ -1,0 +1,4 @@
+Copyright (C) German Aerospace Center (DLR) - All Rights Reserved
+Unauthorized copying of this file, via any medium is strictly prohibited
+Proprietary, reuse prohibited
+Written by Benedikt Franke <benedikt.franke@dlr.de> and "Florian Heinrich <florian.heinrich@dlr.de>, 2024

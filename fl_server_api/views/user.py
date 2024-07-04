@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
+# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 from django.db.models import Q
 from django.http import HttpRequest, HttpResponse
 from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiParameter
@@ -14,18 +19,22 @@ from ..serializers.user import UserSerializer
 
 
 class User(ViewSet):
+    """
+    User model ViewSet.
+    """
 
     serializer_class = UserSerializer
+    """The serializer for the ViewSet."""
 
     @extend_schema(
         responses={
-            status.HTTP_200_OK: UserSerializer,
+            status.HTTP_200_OK: UserSerializer(many=True),
             status.HTTP_403_FORBIDDEN: error_response_403,
         }
     )
     def get_users(self, request: HttpRequest) -> HttpResponse:
         """
-        Get current user information as list.
+        Get all registered users as list.
 
         Args:
             request (HttpRequest):  request object
@@ -33,7 +42,20 @@ class User(ViewSet):
         Returns:
             HttpResponse: user list as json response
         """
-        serializer = UserSerializer([request.user], many=True)
+        serializer = UserSerializer(UserModel.objects.all(), many=True)
+        return Response(serializer.data)
+
+    def get_myself(self, request: HttpRequest) -> HttpResponse:
+        """
+        Get current user.
+
+        Args:
+            request (HttpRequest):  request object
+
+        Returns:
+            HttpResponse: user data as json response
+        """
+        serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
     @extend_schema(

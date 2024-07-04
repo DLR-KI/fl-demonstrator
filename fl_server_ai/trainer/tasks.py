@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
+# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 from celery.utils.log import get_task_logger
 from django.db import transaction, DatabaseError
 from logging import getLogger
@@ -15,6 +20,13 @@ from .model_trainer import ModelTrainer
 
 @app.task(bind=False, ignore_result=False)
 def process_trainer_task(training_uuid: UUID, event_cls: Type[ModelTrainerEvent]):
+    """
+    Celery task that processes a dispatched trainer task.
+
+    Args:
+        training_uuid (UUID): The UUID of the training.
+        event_cls (Type[ModelTrainerEvent]): The class of the event to handle.
+    """
     logger = get_task_logger("fl.celery")
     try:
         training = Training.objects.get(id=training_uuid)
@@ -33,6 +45,14 @@ def process_trainer_task(training_uuid: UUID, event_cls: Type[ModelTrainerEvent]
 
 
 def dispatch_trainer_task(training: Training, event_cls: Type[ModelTrainerEvent], lock_training: bool):
+    """
+    Dispatch a trainer task asynchronously.
+
+    Args:
+        training (Training): The training to dispatch the task for.
+        event_cls (Type[ModelTrainerEvent]): The class of the event to handle.
+        lock_training (bool): Whether to lock the training.
+    """
     logger = getLogger("fl.server")
     if lock_training:
         try:

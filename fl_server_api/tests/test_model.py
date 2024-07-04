@@ -1,13 +1,25 @@
+# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
+# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
+#
+# SPDX-License-Identifier: Apache-2.0
+
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TransactionTestCase
+import io
 import pickle
 import torch
+import torchvision
+from torchvision.transforms import v2 as transforms
 from unittest.mock import MagicMock, patch
+from uuid import uuid4
 
-from fl_server_core.models import GlobalModel, MeanModel, Model, SWAGModel
-from fl_server_core.models.training import TrainingState
-from fl_server_core.tests import BASE_URL, Dummy
 from fl_server_ai.trainer.events import SWAGRoundFinished, TrainingRoundFinished
+from fl_server_api.utils import get_entity
+from fl_server_core.models import GlobalModel, MeanModel, Model, SWAGModel
+from fl_server_core.models.training import Training, TrainingState
+from fl_server_core.tests import BASE_URL, Dummy
+from fl_server_core.utils.torch_serialization import from_torch_module
 
 
 class ModelTests(TransactionTestCase):
@@ -50,8 +62,85 @@ class ModelTests(TransactionTestCase):
             sorted([model["id"] for model in response_json])
         )
 
+    def test_get_all_models_for_a_training(self):
+        # make user actor and client
+        self.user.actor = True
+        self.user.client = True
+        self.user.save()
+        # create participants
+        participants = [Dummy.create_user() for _ in range(4)]
+        participant_rounds = [3, 4, 4, 3]
+        # create models and trainings - some related to user some not
+        [Dummy.create_training() for _ in range(2)]
+        [Dummy.create_training(actor=self.user) for _ in range(2)]
+        [Dummy.create_training(participants=[self.user]) for _ in range(2)]
+        [Dummy.create_model_update() for _ in range(2)]
+        [Dummy.create_model_update(owner=self.user) for _ in range(2)]
+        training = Dummy.create_training(actor=self.user, participants=participants)
+        # create model update for 4 users
+        base_model = training.model
+        models = [base_model]
+        for participant, rounds in zip(participants, participant_rounds):
+            for round_idx in range(rounds):
+                model = Dummy.create_model_update(base_model=base_model, owner=participant, round=round_idx+1)
+                models.append(model)
+        # get user related models for a special training
+        response = self.client.get(f"{BASE_URL}/trainings/{training.pk}/models/")
+        self.assertEqual(200, response.status_code)
+        self.assertEqual("application/json", response["content-type"])
+        response_json = response.json()
+        self.assertEqual(len(models), len(response_json))
+        self.assertEqual(
+            sorted([str(model.id) for model in models]),
+            sorted([model["id"] for model in response_json])
+        )
+
+    def test_get_all_models_for_a_training_latest_only(self):
+        # make user actor and client
+        self.user.actor = True
+        self.user.client = True
+        self.user.save()
+        # create participants
+        participants = [Dummy.create_user() for _ in range(4)]
+        participant_rounds = [3, 4, 4, 3]
+        # create models and trainings - some related to user some not
+        [Dummy.create_training() for _ in range(2)]
+        [Dummy.create_training(actor=self.user) for _ in range(2)]
+        [Dummy.create_training(participants=[self.user]) for _ in range(2)]
+        [Dummy.create_model_update() for _ in range(2)]
+        [Dummy.create_model_update(owner=self.user) for _ in range(2)]
+        training = Dummy.create_training(actor=self.user, participants=participants)
+        # create model update for 4 users
+        base_model = training.model
+        models_latest = [base_model]
+        for participant, rounds in zip(participants, participant_rounds):
+            for round_idx in range(rounds):
+                model = Dummy.create_model_update(base_model=base_model, owner=participant, round=round_idx+1)
+            models_latest.append(model)
+        # get user related "latest" models for a special training
+        response = self.client.get(f"{BASE_URL}/trainings/{training.pk}/models/latest/")
+        self.assertEqual(200, response.status_code)
+        self.assertEqual("application/json", response["content-type"])
+        response_json = response.json()
+        self.assertEqual(len(models_latest), len(response_json))
+        models_latest = sorted(models_latest, key=lambda m: str(m.pk))
+        response_models = sorted(response_json, key=lambda m: m["id"])
+        self.assertEqual(
+            [str(model.id) for model in models_latest],
+            [model["id"] for model in response_models]
+        )
+        self.assertEqual(
+            [model.round for model in models_latest],
+            [model["round"] for model in response_models]
+        )
+
     def test_get_model_metadata(self):
-        model = Dummy.create_model(input_shape="torch.FloatTensor(None, 1, 1)")
+        model_bytes = from_torch_module(torch.nn.Sequential(
+            torch.nn.Linear(3, 64),
+            torch.nn.ELU(),
+            torch.nn.Linear(64, 1),
+        ))
+        model = Dummy.create_model(weights=model_bytes, input_shape=[None, 3])
         response = self.client.get(f"{BASE_URL}/models/{model.id}/metadata/")
         self.assertEqual(200, response.status_code)
         self.assertEqual("application/json", response["content-type"])
@@ -59,7 +148,116 @@ class ModelTests(TransactionTestCase):
         self.assertEqual(str(model.id), response_json["id"])
         self.assertEqual(str(model.name), response_json["name"])
         self.assertEqual(str(model.description), response_json["description"])
-        self.assertEqual(str(model.input_shape), response_json["input_shape"])
+        self.assertEqual(model.input_shape, response_json["input_shape"])
+        # check stats
+        stats = response_json["stats"]
+        self.assertIsNotNone(stats)
+        self.assertEqual([[1, 3]], stats["input_size"])
+        self.assertIsNotNone(stats["total_input"])
+        self.assertIsNotNone(stats["total_mult_adds"])
+        self.assertIsNotNone(stats["total_output_bytes"])
+        self.assertIsNotNone(stats["total_param_bytes"])
+        self.assertIsNotNone(stats["total_params"])
+        self.assertIsNotNone(stats["trainable_params"])
+        # layer 1 stats
+        layer1 = stats["summary_list"][0]
+        self.assertEqual("Sequential", layer1["class_name"])
+        self.assertEqual(0, layer1["depth"])
+        self.assertEqual(1, layer1["depth_index"])
+        self.assertEqual(True, layer1["executed"])
+        self.assertEqual("Sequential", layer1["var_name"])
+        self.assertEqual(False, layer1["is_leaf_layer"])
+        self.assertEqual(False, layer1["contains_lazy_param"])
+        self.assertEqual(False, layer1["is_recursive"])
+        self.assertEqual([1, 3], layer1["input_size"])
+        self.assertEqual([1, 1], layer1["output_size"])
+        self.assertEqual(None, layer1["kernel_size"])
+        self.assertIsNotNone(layer1["trainable_params"])
+        self.assertIsNotNone(layer1["num_params"])
+        self.assertIsNotNone(layer1["param_bytes"])
+        self.assertIsNotNone(layer1["output_bytes"])
+        self.assertIsNotNone(layer1["macs"])
+        # layer 2 stats
+        layer2 = stats["summary_list"][1]
+        self.assertEqual("Linear", layer2["class_name"])
+        self.assertEqual(1, layer2["depth"])
+        self.assertEqual(1, layer2["depth_index"])
+        self.assertEqual(True, layer2["executed"])
+        self.assertEqual("0", layer2["var_name"])
+        self.assertEqual(True, layer2["is_leaf_layer"])
+        self.assertEqual(False, layer2["contains_lazy_param"])
+        self.assertEqual(False, layer2["is_recursive"])
+        self.assertEqual([1, 3], layer2["input_size"])
+        self.assertEqual([1, 64], layer2["output_size"])
+        self.assertEqual(None, layer2["kernel_size"])
+        self.assertIsNotNone(layer2["trainable_params"])
+        self.assertIsNotNone(layer2["num_params"])
+        self.assertIsNotNone(layer2["param_bytes"])
+        self.assertIsNotNone(layer2["output_bytes"])
+        self.assertIsNotNone(layer2["macs"])
+        # layer 3 stats
+        layer3 = stats["summary_list"][2]
+        self.assertEqual("ELU", layer3["class_name"])
+        self.assertEqual(1, layer3["depth"])
+        self.assertEqual(2, layer3["depth_index"])
+        self.assertEqual(True, layer3["executed"])
+        self.assertEqual("1", layer3["var_name"])
+        self.assertEqual(True, layer3["is_leaf_layer"])
+        self.assertEqual(False, layer3["contains_lazy_param"])
+        self.assertEqual(False, layer3["is_recursive"])
+        self.assertEqual([1, 64], layer3["input_size"])
+        self.assertEqual([1, 64], layer3["output_size"])
+        self.assertEqual(None, layer3["kernel_size"])
+        self.assertIsNotNone(layer3["trainable_params"])
+        self.assertIsNotNone(layer3["num_params"])
+        self.assertIsNotNone(layer3["param_bytes"])
+        self.assertIsNotNone(layer3["output_bytes"])
+        self.assertIsNotNone(layer3["macs"])
+        # layer 4 stats
+        layer4 = stats["summary_list"][3]
+        self.assertEqual("Linear", layer4["class_name"])
+        self.assertEqual(1, layer4["depth"])
+        self.assertEqual(3, layer4["depth_index"])
+        self.assertEqual(True, layer4["executed"])
+        self.assertEqual("2", layer4["var_name"])
+        self.assertEqual(True, layer4["is_leaf_layer"])
+        self.assertEqual(False, layer4["contains_lazy_param"])
+        self.assertEqual(False, layer4["is_recursive"])
+        self.assertEqual([1, 64], layer4["input_size"])
+        self.assertEqual([1, 1], layer4["output_size"])
+        self.assertEqual(None, layer4["kernel_size"])
+        self.assertIsNotNone(layer4["trainable_params"])
+        self.assertIsNotNone(layer4["num_params"])
+        self.assertIsNotNone(layer4["param_bytes"])
+        self.assertIsNotNone(layer4["output_bytes"])
+        self.assertIsNotNone(layer4["macs"])
+
+    def test_get_model_metadata_torchscript_model(self):
+        torchscript_model_bytes = from_torch_module(torch.jit.script(torch.nn.Sequential(
+            torch.nn.Linear(3, 64),
+            torch.nn.ELU(),
+            torch.nn.Linear(64, 1),
+        )))
+        model = Dummy.create_model(weights=torchscript_model_bytes, input_shape=[None, 3])
+        response = self.client.get(f"{BASE_URL}/models/{model.id}/metadata/")
+        self.assertEqual(200, response.status_code)
+        self.assertEqual("application/json", response["content-type"])
+        response_json = response.json()
+        self.assertEqual(str(model.id), response_json["id"])
+        self.assertEqual(str(model.name), response_json["name"])
+        self.assertEqual(str(model.description), response_json["description"])
+        self.assertEqual(model.input_shape, response_json["input_shape"])
+        # check stats
+        stats = response_json["stats"]
+        self.assertIsNotNone(stats)
+        self.assertEqual([[1, 3]], stats["input_size"])
+        self.assertIsNotNone(stats["total_input"])
+        self.assertIsNotNone(stats["total_mult_adds"])
+        self.assertIsNotNone(stats["total_output_bytes"])
+        self.assertIsNotNone(stats["total_param_bytes"])
+        self.assertIsNotNone(stats["total_params"])
+        self.assertIsNotNone(stats["trainable_params"])
+        self.assertEqual(4, len(stats["summary_list"]))
 
     def test_get_model(self):
         model = Dummy.create_model(weights=b"Hello World!")
@@ -68,33 +266,121 @@ class ModelTests(TransactionTestCase):
         self.assertEqual("application/octet-stream", response["content-type"])
         self.assertEqual(b"Hello World!", response.getvalue())
 
+    def test_delete_model_without_training_as_model_owner(self):
+        model = Dummy.create_model(owner=self.user)
+        response = self.client.delete(f"{BASE_URL}/models/{model.id}/")
+        self.assertEqual(200, response.status_code)
+        body = response.json()
+        self.assertEqual("Model removed!", body["detail"])
+        self.assertRaises(ObjectDoesNotExist, Model.objects.get, pk=model.id)
+
+    def test_delete_global_model_with_training_as_model_owner(self):
+        model = Dummy.create_model(owner=self.user)
+        training = Dummy.create_training(model=model)
+        response = self.client.delete(f"{BASE_URL}/models/{model.id}/")
+        self.assertEqual(200, response.status_code)
+        body = response.json()
+        self.assertEqual("Model removed!", body["detail"])
+        self.assertRaises(ObjectDoesNotExist, Model.objects.get, pk=model.id)
+        # due to cascade delete (in the case of GlobalModel), training should also be deleted
+        self.assertRaises(ObjectDoesNotExist, Training.objects.get, pk=training.id)
+
+    def test_delete_local_model_with_training_as_model_owner(self):
+        global_model = Dummy.create_model()
+        local_model = Dummy.create_model_update(base_model=global_model, owner=self.user)
+        training = Dummy.create_training(model=global_model)
+        response = self.client.delete(f"{BASE_URL}/models/{local_model.id}/")
+        self.assertEqual(200, response.status_code)
+        body = response.json()
+        self.assertEqual("Model removed!", body["detail"])
+        self.assertRaises(ObjectDoesNotExist, Model.objects.get, pk=local_model.id)
+        self.assertIsNotNone(Model.objects.get(pk=global_model.id))
+        self.assertIsNotNone(Training.objects.get(pk=training.id))
+
+    def test_delete_model_as_training_owner(self):
+        model = Dummy.create_model()
+        training = Dummy.create_training(model=model, actor=self.user)
+        response = self.client.delete(f"{BASE_URL}/models/{model.id}/")
+        self.assertEqual(200, response.status_code)
+        body = response.json()
+        self.assertEqual("Model removed!", body["detail"])
+        self.assertRaises(ObjectDoesNotExist, Model.objects.get, pk=model.id)
+        # due to cascade delete (in the case of GlobalModel), training should also be deleted
+        self.assertRaises(ObjectDoesNotExist, Training.objects.get, pk=training.id)
+
+    def test_delete_model_as_training_participant(self):
+        model = Dummy.create_model()
+        Dummy.create_training(model=model, participants=[Dummy.create_client(), self.user, Dummy.create_client()])
+        with self.assertLogs("django.request", level="WARNING"):
+            response = self.client.delete(f"{BASE_URL}/models/{model.id}/")
+        self.assertEqual(403, response.status_code)
+        body = response.json()
+        self.assertEqual(
+            "You are neither the owner of the model nor the actor of the corresponding training.",
+            body["detail"]
+        )
+        self.assertIsNotNone(Model.objects.get(pk=model.id))
+
+    def test_delete_model_with_training_as_unrelated_user(self):
+        model = Dummy.create_model()
+        Dummy.create_training(model=model)
+        with self.assertLogs("django.request", level="WARNING"):
+            response = self.client.delete(f"{BASE_URL}/models/{model.id}/")
+        self.assertEqual(403, response.status_code)
+        body = response.json()
+        self.assertEqual(
+            "You are neither the owner of the model nor the actor of the corresponding training.",
+            body["detail"]
+        )
+        self.assertIsNotNone(Model.objects.get(pk=model.id))
+
+    def test_delete_model_without_training_as_unrelated_user(self):
+        model = Dummy.create_model()
+        with self.assertLogs("django.request", level="WARNING"):
+            response = self.client.delete(f"{BASE_URL}/models/{model.id}/")
+        self.assertEqual(403, response.status_code)
+        body = response.json()
+        self.assertEqual(
+            "You are neither the owner of the model nor the actor of the corresponding training.",
+            body["detail"]
+        )
+        self.assertIsNotNone(Model.objects.get(pk=model.id))
+
+    def test_delete_non_existing_model(self):
+        model_id = str(uuid4())
+        with self.assertLogs("django.request", level="WARNING"):
+            response = self.client.delete(f"{BASE_URL}/models/{model_id}/")
+        self.assertEqual(400, response.status_code)
+        body = response.json()
+        self.assertEqual(f"Model {model_id} not found.", body["detail"])
+
     def test_get_model_and_unpickle(self):
         model = Dummy.create_model()
         response = self.client.get(f"{BASE_URL}/models/{model.id}/")
         self.assertEqual(200, response.status_code)
         self.assertEqual("application/octet-stream", response["content-type"])
-        torch_model = pickle.loads(response.content)
+        torch_model = torch.jit.load(io.BytesIO(response.content))
         self.assertIsNotNone(torch_model)
         self.assertTrue(isinstance(torch_model, torch.nn.Module))
 
     def test_upload(self):
-        torch_model = torch.nn.Sequential(
+        torch_model = torch.jit.script(torch.nn.Sequential(
             torch.nn.Linear(3, 64),
             torch.nn.ELU(),
             torch.nn.Linear(64, 64),
             torch.nn.ELU(),
             torch.nn.Linear(64, 1),
-        )
+        ))
         model_file = SimpleUploadedFile(
-            "model.pkl",
-            pickle.dumps(torch_model),
+            "model.pt",
+            from_torch_module(torch_model),  # torchscript model
             content_type="application/octet-stream"
         )
         response = self.client.post(f"{BASE_URL}/models/", {
             "model_file": model_file,
             "name": "Test Model",
             "description": "Test Model Description - Test Model Description Test",
-            "input_shape": "torch.FloatTensor(None, 3)"
+            "input_shape": [None, 3]
         })
         self.assertEqual(201, response.status_code)
         response_json = response.json()
@@ -104,19 +390,19 @@ class ModelTests(TransactionTestCase):
         self.assertIsNotNone(uuid)
         self.assertIsNot("", uuid)
         self.assertEqual(GlobalModel, type(Model.objects.get(id=uuid)))
-        self.assertEqual("torch.FloatTensor(None, 3)", Model.objects.get(id=uuid).input_shape)
+        self.assertEqual([None, 3], Model.objects.get(id=uuid).input_shape)
 
     def test_upload_swag_model(self):
-        torch_model = torch.nn.Sequential(
+        torch_model = torch.jit.script(torch.nn.Sequential(
             torch.nn.Linear(3, 64),
             torch.nn.ELU(),
             torch.nn.Linear(64, 64),
             torch.nn.ELU(),
             torch.nn.Linear(64, 1),
-        )
+        ))
         model_file = SimpleUploadedFile(
-            "model.pkl",
-            pickle.dumps(torch_model),
+            "model.pt",
+            from_torch_module(torch_model),  # torchscript model
             content_type="application/octet-stream"
         )
         response = self.client.post(f"{BASE_URL}/models/", {
@@ -152,17 +438,131 @@ class ModelTests(TransactionTestCase):
         self.assertIsNot("", uuid)
         self.assertEqual(MeanModel, type(Model.objects.get(id=uuid)))
 
+    def test_upload_with_preprocessing(self):
+        torch_model = torch.jit.script(torch.nn.Sequential(
+            torch.nn.Linear(3, 64),
+            torch.nn.ELU(),
+            torch.nn.Linear(64, 1),
+        ))
+        model_file = SimpleUploadedFile(
+            "model.pt",
+            from_torch_module(torch_model),  # torchscript model
+            content_type="application/octet-stream"
+        )
+        torch_model_preprocessing = torch.jit.script(torch.nn.Sequential(
+            transforms.Normalize(mean=(0.,), std=(1.,)),
+        ))
+        model_preprocessing_file = SimpleUploadedFile(
+            "preprocessing.pt",
+            from_torch_module(torch_model_preprocessing),  # torchscript model
+            content_type="application/octet-stream"
+        )
+        response = self.client.post(f"{BASE_URL}/models/", {
+            "model_file": model_file,
+            "model_preprocessing_file": model_preprocessing_file,
+            "name": "Test Model",
+            "description": "Test Model Description - Test Model Description Test",
+            "input_shape": [None, 3]
+        })
+        self.assertEqual(201, response.status_code)
+        response_json = response.json()
+        self.assertIsNotNone(response_json)
+        self.assertEqual("Model Upload Accepted", response_json["detail"])
+        uuid = response_json["model_id"]
+        self.assertIsNotNone(uuid)
+        self.assertIsNot("", uuid)
+        self.assertEqual(GlobalModel, type(Model.objects.get(id=uuid)))
+        self.assertEqual([None, 3], Model.objects.get(id=uuid).input_shape)
+        model = get_entity(GlobalModel, pk=uuid)
+        self.assertIsNotNone(model)
+        self.assertIsNotNone(model.weights)
+        self.assertIsNotNone(model.preprocessing)
+        self.assertTrue(isinstance(model.get_torch_model(), torch.nn.Module))
+        self.assertTrue(isinstance(model.get_preprocessing_torch_model(), torch.nn.Module))
+
+    def test_upload_model_preprocessing(self):
+        model = Dummy.create_model(owner=self.user, preprocessing=None)
+        torch_model_preprocessing = torch.jit.script(torch.nn.Sequential(
+            transforms.Normalize(mean=(0.,), std=(1.,)),
+        ))
+        model_preprocessing_file = SimpleUploadedFile(
+            "preprocessing.pt",
+            from_torch_module(torch_model_preprocessing),  # torchscript model
+            content_type="application/octet-stream"
+        )
+        response = self.client.post(f"{BASE_URL}/models/{model.id}/preprocessing/", {
+            "model_preprocessing_file": model_preprocessing_file,
+        })
+        self.assertEqual(202, response.status_code)
+        response_json = response.json()
+        self.assertIsNotNone(response_json)
+        self.assertEqual("Proprocessing Model Upload Accepted", response_json["detail"])
+        model.refresh_from_db()
+        self.assertIsNotNone(model)
+        self.assertIsNotNone(model.preprocessing)
+        self.assertTrue(isinstance(model.get_preprocessing_torch_model(), torch.nn.Module))
+
+    def test_upload_model_preprocessing_v1_Compose_bad(self):
+        model = Dummy.create_model(owner=self.user, preprocessing=None)
+        # torchvision.transforms.Compose (v1 not v2) does not inherit from torch.nn.Module!!
+        torch_model_preprocessing = torchvision.transforms.Compose([
+            torchvision.transforms.ToTensor(),
+            torchvision.transforms.Normalize(mean=(0.,), std=(1.,)),
+        ])
+        model_preprocessing_file = SimpleUploadedFile(
+            "preprocessing.pt",
+            from_torch_module(torch_model_preprocessing),  # (normal) transforms.Compose
+            content_type="application/octet-stream"
+        )
+        with self.assertLogs("fl.server", level="ERROR"):  # Loaded torch object is not of expected type.
+            with self.assertLogs("django.request", level="WARNING"):  # Bad Request
+                response = self.client.post(f"{BASE_URL}/models/{model.id}/preprocessing/", {
+                    "model_preprocessing_file": model_preprocessing_file,
+                })
+        self.assertEqual(400, response.status_code)
+        response_json = response.json()
+        self.assertIsNotNone(response_json)
+        self.assertEqual(
+            "Invalid preprocessing file: Loaded torch object is not of expected type.",
+            response_json[0],
+        )
+
+    def test_upload_model_preprocessing_v2_Compose_good(self):
+        # Maybe good now
+        model = Dummy.create_model(owner=self.user, preprocessing=None)
+        torch_model_preprocessing = transforms.Compose([
+            transforms.ToImage(),
+            transforms.ToDtype(torch.float32, scale=True),
+            transforms.Normalize(mean=(0.,), std=(1.,)),
+        ])
+        model_preprocessing_file = SimpleUploadedFile(
+            "preprocessing.pt",
+            from_torch_module(torch_model_preprocessing),  # (normal) transforms.Compose
+            content_type="application/octet-stream"
+        )
+        response = self.client.post(f"{BASE_URL}/models/{model.id}/preprocessing/", {
+            "model_preprocessing_file": model_preprocessing_file,
+        })
+        self.assertEqual(202, response.status_code)
+        response_json = response.json()
+        self.assertIsNotNone(response_json)
+        self.assertEqual("Proprocessing Model Upload Accepted", response_json["detail"])
+        model.refresh_from_db()
+        self.assertIsNotNone(model)
+        self.assertIsNotNone(model.preprocessing)
+        self.assertTrue(isinstance(model.get_preprocessing_torch_model(), torch.nn.Module))
+
     @patch("fl_server_ai.trainer.tasks.process_trainer_task.apply_async")
     def test_upload_update(self, apply_async: MagicMock):
         model = Dummy.create_model(owner=self.user, round=0)
         Dummy.create_training(model=model, actor=self.user, state=TrainingState.ONGOING,
                               participants=[self.user, Dummy.create_user()])
         model_update_file = SimpleUploadedFile(
-            "model.pkl",
-            pickle.dumps(torch.nn.Sequential(
+            "model.pt",
+            from_torch_module(torch.jit.script(torch.nn.Sequential(
                 torch.nn.Linear(3, 1),
                 torch.nn.Sigmoid()
-            )),
+            ))),
             content_type="application/octet-stream"
         )
         response = self.client.post(
@@ -179,11 +579,11 @@ class ModelTests(TransactionTestCase):
     def test_upload_update_bad_keys(self):
         model = Dummy.create_model(owner=self.user, round=0)
         model_update_file = SimpleUploadedFile(
-            "model.pkl",
-            pickle.dumps(torch.nn.Sequential(
+            "model.pt",
+            from_torch_module(torch.jit.script(torch.nn.Sequential(
                 torch.nn.Linear(3, 1),
                 torch.nn.Sigmoid()
-            )),
+            ))),
             content_type="application/octet-stream"
         )
         with self.assertLogs("django.request", level="WARNING"):
@@ -199,11 +599,11 @@ class ModelTests(TransactionTestCase):
     def test_upload_update_no_training(self):
         model = Dummy.create_model(owner=self.user, round=0)
         model_update_file = SimpleUploadedFile(
-            "model.pkl",
-            pickle.dumps(torch.nn.Sequential(
+            "model.pt",
+            from_torch_module(torch.jit.script(torch.nn.Sequential(
                 torch.nn.Linear(3, 1),
                 torch.nn.Sigmoid()
-            )),
+            ))),
             content_type="application/octet-stream"
         )
         with self.assertLogs("django.request", level="WARNING"):
@@ -225,11 +625,11 @@ class ModelTests(TransactionTestCase):
             participants=[actor, Dummy.create_client()]
         )
         model_update_file = SimpleUploadedFile(
-            "model.pkl",
-            pickle.dumps(torch.nn.Sequential(
+            "model.pt",
+            from_torch_module(torch.jit.script(torch.nn.Sequential(
                 torch.nn.Linear(3, 1),
                 torch.nn.Sigmoid()
-            )),
+            ))),
             content_type="application/octet-stream"
         )
         with self.assertLogs("root", level="WARNING"):
@@ -249,11 +649,11 @@ class ModelTests(TransactionTestCase):
         train = Dummy.create_training(model=model, actor=self.user, state=TrainingState.ONGOING,
                                       participants=[self.user])
         model_update_file = SimpleUploadedFile(
-            "model.pkl",
-            pickle.dumps(torch.nn.Sequential(
+            "model.pt",
+            from_torch_module(torch.jit.script(torch.nn.Sequential(
                 torch.nn.Linear(3, 1),
                 torch.nn.Sigmoid()
-            )),
+            ))),
             content_type="application/octet-stream"
         )
         response = self.client.post(
@@ -281,11 +681,11 @@ class ModelTests(TransactionTestCase):
         training.locked = True
         training.save()
         model_update_file = SimpleUploadedFile(
-            "model.pkl",
-            pickle.dumps(torch.nn.Sequential(
+            "model.pt",
+            from_torch_module(torch.jit.script(torch.nn.Sequential(
                 torch.nn.Linear(3, 1),
                 torch.nn.Sigmoid()
-            )),
+            ))),
             content_type="application/octet-stream"
         )
         response = self.client.post(
@@ -304,11 +704,11 @@ class ModelTests(TransactionTestCase):
         Dummy.create_training(model=model, actor=self.user, state=TrainingState.ONGOING,
                               participants=[self.user, Dummy.create_user()])
         model_update_file = SimpleUploadedFile(
-            "model.pkl",
-            pickle.dumps(torch.nn.Sequential(
+            "model.pt",
+            from_torch_module(torch.jit.script(torch.nn.Sequential(
                 torch.nn.Linear(3, 1),
                 torch.nn.Sigmoid()
-            )),
+            ))),
             content_type="application/octet-stream"
         )
 
@@ -332,11 +732,11 @@ class ModelTests(TransactionTestCase):
         Dummy.create_training(model=model, actor=self.user, state=TrainingState.ONGOING,
                               participants=[self.user, Dummy.create_user()])
         model_update_file = SimpleUploadedFile(
-            "model.pkl",
-            pickle.dumps(torch.nn.Sequential(
+            "model.pt",
+            from_torch_module(torch.jit.script(torch.nn.Sequential(
                 torch.nn.Linear(3, 1),
                 torch.nn.Sigmoid()
-            )),
+            ))),
             content_type="application/octet-stream"
         )
         with self.assertLogs("root", level="WARNING"):

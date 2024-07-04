@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
+# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 from typing import List
 
 from fl_server_core.models import LocalModel
@@ -10,7 +15,7 @@ from .model_test_finished import ModelTestFinished
 
 class TrainingRoundFinished(ModelTrainerEvent):
     """
-    After a trainings round is finised.
+    Training round finished event.
 
     This event should only be triggered when all model updates (local models)
     that are to participate in the aggregation have arrived.
@@ -28,11 +33,12 @@ class TrainingRoundFinished(ModelTrainerEvent):
 
     def handle(self):
         """
-        Does the following:
-        - aggregates all model updates (local models) into a new global model
-        - saves the new global model into the database (i.e. updates/overwrites the weights field of the model)
+        Handle the training round finished event.
+
+        - aggregate all model updates (local models) into a new global model
+        - save the new global model into the database (i.e. updates/overwrites the weights field of the model)
         - increase the round field of the global model by 1
-        - deletes the model updates (local models) from the database, if the trainer options do not disagree
+        - delete the model updates (local models) from the database, if the trainer options do not disagree
 
         Note: If not enough updates have arrived, the method does nothing.
         """
@@ -63,6 +69,19 @@ class TrainingRoundFinished(ModelTrainerEvent):
             model_updates.delete()
 
     def _validate(self, models: List, n_participants: int):
+        """
+        Validate the models and participant number for the training.
+
+        This method checks if there are any models and if the number of models matches the number of participants.
+        If any of these conditions are not met, an error is logged and a `RuntimeError` is raised.
+
+        Args:
+            models (List): The list of models for the training.
+            n_participants (int): The number of participants in the training.
+
+        Raises:
+            RuntimeError: If there are no models or if the number of models does not match the number of participants.
+        """
         if not models:
             text = f"Aggregation was run for training {self.training.id} but no model updates were in db!"
             self._logger.error(text)

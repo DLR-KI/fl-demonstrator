@@ -1,0 +1,947 @@
+{
+	"info": {
+		"_postman_id": "a26cce21-d9a3-4b13-abc9-6f06a8ae6d1b",
+		"name": "Fl Platform",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20639678"
+	},
+	"item": [
+		{
+			"name": "Create User",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"pm.collectionVariables.set(\"USER_ID\", jsonData[\"id\"]);\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"testuser\",\r\n    \"password\": \"password\",\r\n    \"first_name\": \"John\",\r\n    \"last_name\": \"Catena\",\r\n    \"email\": \"john-doe@example.com\",\r\n    \"message_endpoint\": \"https://example.com\",\r\n    \"client\": true,\r\n    \"actor\": true\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/users/",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"users",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Second User",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"pm.collectionVariables.set(\"USER_ID_2\", jsonData[\"id\"]);\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"testuser2\",\r\n    \"password\": \"password\",\r\n    \"first_name\": \"Johnanna\",\r\n    \"last_name\": \"Catena\",\r\n    \"email\": \"jc@example.com\",\r\n    \"message_endpoint\": \"https://example.com\",\r\n    \"client\": true,\r\n    \"actor\": false\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/users/",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"users",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[MARKED FOR DELETE] List User Groups",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "password",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "testuser",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/users/groups/",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"users",
+						"groups",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get User Data",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "password",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "testuser",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/users/{{USER_ID}}",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"users",
+						"{{USER_ID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Upload Model",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"pm.collectionVariables.set(\"MODEL_ID\", jsonData[\"model_id\"]);\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "password",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "testuser",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "model_file",
+							"type": "file",
+							"src": "/C:/Users/fran_bi/Downloads/test_model.pt"
+						},
+						{
+							"key": "name",
+							"value": "my_test_model",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "A test model for postman",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/models/",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"models",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Models",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "password",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "testuser",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/models/",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"models",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Model Metadata",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "password",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "testuser",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "model.pt",
+							"value": "",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/models/{{MODEL_ID}}/metadata/",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"models",
+						"{{MODEL_ID}}",
+						"metadata",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Download Model",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "password",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "testuser",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/models/{{MODEL_ID}}/",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"models",
+						"{{MODEL_ID}}",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Training",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"pm.collectionVariables.set(\"TRAINING_ID\", jsonData[\"training_id\"]);\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "password",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "testuser",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"model_id\": \"{{MODEL_ID}}\",\r\n    \"target_num_updates\": 1,\r\n    \"metric_names\": [\"accuracy\"],\r\n    \"aggregation_method\": \"FedAvg\",\r\n    \"clients\": [\"{{USER_ID}}\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/trainings/",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"trainings",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Trainings",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/trainings/",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"trainings",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Training By ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/trainings/{{TRAINING_ID}}",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"trainings",
+						"{{TRAINING_ID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List User Trainings",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "password",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "testuser",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/users/trainings/",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"users",
+						"trainings",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Client To Training",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "password",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "testuser",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"clients\": [\"{{USER_ID_2}}\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/trainings/{{TRAINING_ID}}/clients/",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"trainings",
+						"{{TRAINING_ID}}",
+						"clients",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Remove Client From Training",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "password",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "testuser",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"clients\": [\"{{USER_ID_2}}\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/trainings/{{TRAINING_ID}}/clients/",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"trainings",
+						"{{TRAINING_ID}}",
+						"clients",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Start Training",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "password",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "testuser",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{BASE_URL}}/trainings/{{TRAINING_ID}}/start/",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"trainings",
+						"{{TRAINING_ID}}",
+						"start",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Upload Model Update",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "model_file",
+							"type": "file",
+							"src": "/C:/Users/fran_bi/Downloads/test_model.pt"
+						},
+						{
+							"key": "round",
+							"value": "0",
+							"type": "text"
+						},
+						{
+							"key": "sample_size",
+							"value": "2000000",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/models/{{MODEL_ID}}/",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"models",
+						"{{MODEL_ID}}",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Upload Model Metrics",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "metric_names",
+							"value": "accuracy",
+							"type": "text"
+						},
+						{
+							"key": "metric_values",
+							"value": "0.96",
+							"type": "text"
+						},
+						{
+							"key": "sample_size",
+							"value": "2000000",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/models/{{MODEL_ID}}/metrics/",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"models",
+						"{{MODEL_ID}}",
+						"metrics",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Model Metrics",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/models/{{MODEL_ID}}/metrics/",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"models",
+						"{{MODEL_ID}}",
+						"metrics",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Model Inference JSON",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"model_id\": \"{{MODEL_ID}}\",\r\n    \"model_input\": [[1.0, 1.0, 1.0, 0.0, 1.0, 5.0, 1.0, 1.0, 7.0, 10.0]]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/inference/",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"inference",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "basic",
+		"basic": [
+			{
+				"key": "password",
+				"value": "password",
+				"type": "string"
+			},
+			{
+				"key": "username",
+				"value": "testuser",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "BASE_URL",
+			"value": "http://127.0.0.1:8000/api",
+			"type": "string"
+		},
+		{
+			"key": "USER_ID",
+			"value": ""
+		},
+		{
+			"key": "MODEL_ID",
+			"value": ""
+		},
+		{
+			"key": "TRAINING_ID",
+			"value": ""
+		},
+		{
+			"key": "USER_ID_2",
+			"value": ""
+		}
+	]
+}

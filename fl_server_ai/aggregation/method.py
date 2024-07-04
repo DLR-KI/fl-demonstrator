@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
+# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 from typing import overload, Type
 
 from fl_server_core.models import Model, Training
@@ -22,6 +27,18 @@ def get_aggregation_class(value: AggregationMethod) -> Type[Aggregation]: ...
 
 
 def get_aggregation_class(value: AggregationMethod | Model | Training) -> Type[Aggregation]:
+    """
+    Get the aggregation class based on the provided model, training or aggregation method.
+
+    Args:
+        value (AggregationMethod | Model | Training): The value based on which the aggregation class is determined.
+
+    Returns:
+        Type[Aggregation]: The type of the aggregation class.
+
+    Raises:
+        ValueError: If the type of value or the aggregation method is unknown.
+    """
     if isinstance(value, AggregationMethod):
         method = value
     elif isinstance(value, Training):

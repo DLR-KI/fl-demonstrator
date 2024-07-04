@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
+# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 from django.http import HttpRequest, HttpResponse, JsonResponse
 import json
 from marshmallow import Schema
@@ -18,7 +23,7 @@ from fl_server_ai.trainer import ModelTrainer
 
 from .base import ViewSet
 from ..utils import get_entity
-from ..serializers.generic import TrainingSerializer
+from ..serializers.generic import TrainingSerializer, TrainingSerializerWithRounds
 from ..serializers.training import (
     CreateTrainingRequest, CreateTrainingRequestSchema,
     ClientAdministrationBody, ClientAdministrationBodySchema
@@ -31,13 +36,27 @@ from ..serializers.generic import ErrorSerializer
 
 class Training(ViewSet):
     """
-    Federated Learning Platform's API trainings endpoint `/api/trainings`.
-    This endpoint is used to create and manage trainings.
+    Training model ViewSet.
+
+    This ViewSet is used to create and manage trainings.
     """
 
     serializer_class = TrainingSerializer
+    """The serializer for the ViewSet."""
 
     def _check_user_permission_for_training(self, user: UserDB, training_id: UUID | str) -> TrainingDB:
+        """
+        Check if a user has permission for a training.
+
+        This method checks if the user is the actor of the training or a participant in the training.
+
+        Args:
+            user (UserDB): The user.
+            training_id (UUID | str): The ID of the training.
+
+        Returns:
+            TrainingDB: The training.
+        """
         if isinstance(training_id, str):
             training_id = UUID(training_id)
         training = get_entity(TrainingDB, pk=training_id)
@@ -46,10 +65,33 @@ class Training(ViewSet):
         return training
 
     def _get_clients_from_body(self, body_raw: bytes) -> list[UserDB]:
+        """
+        Get clients or participants from a request body.
+
+        This method retrieves and loads all client data associated with the provided list of UUIDs contained
+        within the request's clients field in the request body.
+
+        Args:
+            body_raw (bytes): The raw request body.
+
+        Returns:
+            list[UserDB]: The clients.
+        """
         body: ClientAdministrationBody = self._load_marshmallow_request(ClientAdministrationBodySchema(), body_raw)
         return self._get_clients_from_uuid_list(body.clients)
 
     def _get_clients_from_uuid_list(self, uuids: list[UUID]) -> list[UserDB]:
+        """
+        Get clients from a list of UUIDs.
+
+        This method gets the clients with the IDs in the list of UUIDs from the database.
+
+        Args:
+            uuids (list[UUID]): The list of UUIDs.
+
+        Returns:
+            list[UserDB]: The clients.
+        """
         if uuids is None or len(uuids) == 0:
             return []
         # Note: filter "in" does not raise UserDB.DoesNotExist exceptions
@@ -59,10 +101,23 @@ class Training(ViewSet):
         return clients
 
     def _load_marshmallow_request(self, schema: Schema, json_data: str | bytes | bytearray):
+        """
+        Load JSON data using from a request using a Marshmallow schema.
+
+        Args:
+            schema (Schema): The Marshmallow schema to use for loading the request.
+            json_data (str | bytes | bytearray): The JSON data to load.
+
+        Raises:
+            ParseError: If a MarshmallowValidationError occurs.
+
+        Returns:
+            dict: The loaded data.
+        """
         try:
             return schema.load(json.loads(json_data))  # should `schema.loads` be used instead?
         except MarshmallowValidationError as e:
-            raise ParseError(e.messages)
+            raise ParseError(e.messages) from e
 
     @extend_schema(responses={
         status.HTTP_200_OK: TrainingSerializer(many=True),
@@ -83,6 +138,11 @@ class Training(ViewSet):
         serializer = TrainingSerializer(trainings, many=True)
         return Response(serializer.data)
 
+    @extend_schema(responses={
+        status.HTTP_200_OK: TrainingSerializerWithRounds,
+        status.HTTP_400_BAD_REQUEST: ErrorSerializer,
+        status.HTTP_403_FORBIDDEN: error_response_403,
+    })
     def get_training(self, request: HttpRequest, id: str) -> HttpResponse:
         """
         Get information about the selected training.
@@ -95,14 +155,14 @@ class Training(ViewSet):
             HttpResponse: training data as json response
         """
         train = self._check_user_permission_for_training(request.user, id)
-        serializer = TrainingSerializer(train)
+        serializer = TrainingSerializerWithRounds(train)
         return Response(serializer.data)
 
     @extend_schema(
         request=inline_serializer("EmptyBodySerializer", fields={}),
         responses={
             status.HTTP_200_OK: inline_serializer(
-                "SuccessSerializer",
+                "StartTrainingSuccessSerializer",
                 fields={
                     "detail": CharField(default="Training started!")
                 }
@@ -113,15 +173,22 @@ class Training(ViewSet):
     )
     def start_training(self, request: HttpRequest, id: str) -> HttpResponse:
         """
-        Start training. Will check if at least one participant is registered.
-        Should be called by an POST request with an empty body.
+        Start a training process.
+
+        This method checks if there are any participants registered for the training process.
+        If there are participants, it checks if the training process is in the INITIAL state and starts the training
+        session.
 
         Args:
-            request (HttpRequest):  request object
-            id (str):  training uuid
+            request (HttpRequest): The request object, which includes information about the user making the request.
+            id (str): The UUID of the training process to start.
+
+        Raises:
+            ParseError: If there are no participants registered for the training process or if the training process
+                is not in the INITIAL state.
 
         Returns:
-            HttpResponse: training data as json response
+            HttpResponse: A JSON response indicating that the training process has started.
         """
         training = self._check_user_permission_for_training(request.user, id)
         if training.participants.count() == 0:
@@ -151,27 +218,52 @@ class Training(ViewSet):
     )
     def register_clients(self, request: HttpRequest, id: str) -> HttpResponse:
         """
-        Register one or more clients for the training.
-        Should be called by POST with a json body of the form.
-        Should be called once before the training is started.
+        Register one or more clients for a training process.
 
-        ```json
-        {"clients": [<list of UUIDs>]}
-        ```
+        This method is designed to be called by a POST request with a JSON body of the form
+        `{"clients": [<list of UUIDs>]}`.
+        It adds these clients as participants of the training process.
 
-        Will check if all the selected clients are registered.
+        Note: This method should be called once before the training process is started.
+
+        Args:
+            request (HttpRequest): The request object.
+            id (str): The UUID of the training process.
+
+        Returns:
+            HttpResponse: 202 Response if clients were registered, else corresponding error code.
+        """
+        train = self._check_user_permission_for_training(request.user, id)
+        clients = self._get_clients_from_body(request.body)
+        train.participants.add(*clients)
+        return JsonResponse({"detail": "Users registered as participants!"}, status=status.HTTP_202_ACCEPTED)
+
+    @extend_schema(responses={
+        status.HTTP_200_OK: inline_serializer(
+            "DeleteTrainingSuccessSerializer",
+            fields={
+                "detail": CharField(default="Training removed!")
+            }
+        ),
+        status.HTTP_400_BAD_REQUEST: ErrorSerializer,
+        status.HTTP_403_FORBIDDEN: error_response_403,
+    })
+    def remove_training(self, request: HttpRequest, id: str) -> HttpResponse:
+        """
+        Remove an existing training process.
 
         Args:
             request (HttpRequest):  request object
             id (str):  training uuid
 
         Returns:
-            HttpResponse: 202 Response if clients were registered, else corresponding error code
+            HttpResponse: 200 Response if training was removed, else corresponding error code
         """
-        train = self._check_user_permission_for_training(request.user, id)
-        clients = self._get_clients_from_body(request.body)
-        train.participants.add(*clients)
-        return JsonResponse({"detail": "Users registered as participants!"}, status=status.HTTP_202_ACCEPTED)
+        training = get_entity(TrainingDB, pk=id)
+        if training.actor != request.user:
+            raise PermissionDenied("You are not the owner the training.")
+        training.delete()
+        return JsonResponse({"detail": "Training removed!"})
 
     @extend_schema(
         request=inline_serializer(
@@ -193,15 +285,16 @@ class Training(ViewSet):
     )
     def remove_clients(self, request: HttpRequest, id: str) -> HttpResponse:
         """
-        Remove clients from the list of registered clients for a training.
-        This is meant for modification of an already existing training process.
+        Remove one or more clients from a training process.
+
+        This method is designed to modify an already existing training process.
 
         Args:
-            request (HttpRequest):  request object
-            id (str):  training uuid
+            request (HttpRequest): The request object.
+            id (str): The UUID of the training process.
 
         Returns:
-            HttpResponse: 200 Response if clients were removed, else corresponding error code
+            HttpResponse: 200 Response if clients were removed, else corresponding error code.
         """
         train = self._check_user_permission_for_training(request.user, id)
         clients = self._get_clients_from_body(request.body)
@@ -222,7 +315,7 @@ class Training(ViewSet):
         responses={
             status.HTTP_200_OK: inline_serializer("TrainingCreatedSerializer", fields={
                 "detail": CharField(default="Training created successfully!"),
-                "model_id": UUIDField(),
+                "training_id": UUIDField(),
             }),
             status.HTTP_400_BAD_REQUEST: ErrorSerializer,
             status.HTTP_403_FORBIDDEN: error_response_403,
@@ -230,15 +323,16 @@ class Training(ViewSet):
     )
     def create_training(self, request: HttpRequest) -> HttpResponse:
         """
-        Creates a training process.
-        Should be called by POST according to `CreateTrainingRequestSchema` and
-        should have a model file (the initial model) as attached FILE.
+        Create a new training process.
+
+        This method is designed to be called by a POST request according to the `CreateTrainingRequestSchema`.
+        The request should include a model file (the initial model) as an attached FILE.
 
         Args:
-            request (HttpRequest):  request object
+            request (HttpRequest):  The request object.
 
         Returns:
-            HttpResponse: 201 if training could be registered
+            HttpResponse: 201 if training could be registered.
         """
         parsed_request: CreateTrainingRequest = self._load_marshmallow_request(
             CreateTrainingRequestSchema(),

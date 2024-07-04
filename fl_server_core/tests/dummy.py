@@ -1,16 +1,23 @@
+# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
+# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 import base64
-from django.contrib.auth.models import Group
-from django.test import Client
-from faker import Faker
-from logging import getLogger
 import pickle
 import random
-import torch
+from logging import getLogger
 from typing import Type
 from uuid import uuid4
 
+import torch
+from django.contrib.auth.models import Group
+from django.test import Client
+from faker import Faker
+
 from fl_server_core.models import GlobalModel, LocalModel, Metric, Model, Training, User
 from fl_server_core.models.training import AggregationMethod, TrainingState, UncertaintyMethod
+from fl_server_core.utils.torch_serialization import from_torch_module
 
 
 BASE_URL: str = "http://127.0.0.1:8000/api"
@@ -23,14 +30,16 @@ class Dummy:
 
     @classmethod
     def create_model(cls, model_cls: Type[Model] = GlobalModel, **kwargs) -> GlobalModel:
+        torchscript_model = torch.jit.script(torch.nn.Sequential(
+            torch.nn.Linear(3, 1),
+            torch.nn.Sigmoid()
+        ))
         args = dict(
             name=f"{cls.fake.company()} Model",
             description=f"Model created for {cls.fake.catch_phrase()}.",
             round=0,
-            weights=pickle.dumps(torch.nn.Sequential(
-                torch.nn.Linear(3, 1),
-                torch.nn.Sigmoid()
-            )),
+            weights=from_torch_module(torchscript_model),  # torchscript model
+            input_shape=None if kwargs.__contains__("weights") else [None, 3],
         )
         args.update(kwargs)
         if "owner" not in args:
@@ -43,10 +52,10 @@ class Dummy:
     def create_model_update(cls, **kwargs) -> LocalModel:
         args = dict(
             round=1,
-            weights=pickle.dumps(torch.nn.Sequential(
+            weights=from_torch_module(torch.jit.script(torch.nn.Sequential(
                 torch.nn.Linear(3, 1),
                 torch.nn.Sigmoid()
-            )),
+            ))),
             sample_size=10,
         )
         args.update(kwargs)

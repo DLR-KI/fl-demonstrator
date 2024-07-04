@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
+# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 from django.conf import settings
 from django.urls import path
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
@@ -19,20 +24,34 @@ urlpatterns = [
     }), name="group"),
     # users
     path("users/", view=User.as_view({"get": "get_users", "post": "create_user"}), name="users"),
+    path("users/myself/", view=User.as_view({"get": "get_myself"}), name="users"),
     path("users/groups/", view=User.as_view({"get": "get_user_groups"}), name="user-groups"),
     path("users/trainings/", view=User.as_view({"get": "get_user_trainings"}), name="user-trainings"),
     path("users/<str:id>/", view=User.as_view({"get": "get_user"}), name="user"),
     # models
     path("models/", view=Model.as_view({"get": "get_models", "post": "create_model"}), name="models"),
-    path("models/<str:id>/", view=Model.as_view({"get": "get_model", "post": "create_local_model"}), name="model"),
+    path("models/<str:id>/", view=Model.as_view(
+        {"get": "get_model", "post": "create_local_model", "delete": "remove_model"}
+    ), name="model"),
     path("models/<str:id>/metadata/", view=Model.as_view({"get": "get_metadata"}), name="model-metadata"),
     path("models/<str:id>/metrics/", view=Model.as_view(
         {"get": "get_model_metrics", "post": "create_model_metrics"}
     ), name="model-metrics"),
+    path("models/<str:id>/preprocessing/", view=Model.as_view(
+        {"post": "upload_model_preprocessing"}
+    ), name="model-preprocessing"),
     path("models/<str:id>/swag/", view=Model.as_view({"post": "create_swag_stats"}), name="model-swag"),
     # trainings
     path("trainings/", view=Training.as_view({"get": "get_trainings", "post": "create_training"}), name="trainings"),
-    path("trainings/<str:id>/", view=Training.as_view({"get": "get_training"}), name="training"),
+    path("trainings/<str:id>/", view=Training.as_view(
+        {"get": "get_training", "delete": "remove_training"}
+    ), name="training"),
+    path("trainings/<str:training_id>/models/", view=Model.as_view(
+        {"get": "get_training_models"}
+    ), name="training-models"),
+    path("trainings/<str:training_id>/models/latest/", view=Model.as_view(
+        {"get": "get_training_models_latest"}
+    ), name="training-models-latest"),
     path("trainings/<str:id>/clients/", view=Training.as_view(
         {"put": "register_clients", "delete": "remove_clients"}
     ), name="training-clients"),
@@ -43,6 +62,6 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += [
-        # Dummies for Johannes
+        # Dummies for testing
         path("dummy/", view=DummyView.as_view({"get": "create_dummy_metrics_and_models"}, name="dummy")),
     ]

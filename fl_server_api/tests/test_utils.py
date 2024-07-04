@@ -1,15 +1,20 @@
+# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
+# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.http import HttpRequest
 from django.test import TestCase
 from rest_framework.exceptions import ParseError
 from uuid import uuid4
-import pickle
 import torch
 from typing import Optional
 
 from fl_server_core.tests import Dummy
 from fl_server_core.models import User
 from fl_server_core.utils.strings import str2bool
+from fl_server_core.utils.torch_serialization import from_torch_tensor
 
 from ..utils import get_entity, get_file, is_json
 
@@ -44,8 +49,8 @@ class UtilsTest(TestCase):
 
     def test_views_get_file(self):
         key = "model-key"
-        inp = pickle.dumps(torch.zeros(3, 3))
-        input_file = SimpleUploadedFile("input.pkl", inp, content_type="application/octet-stream")
+        inp = from_torch_tensor(torch.zeros(3, 3))
+        input_file = SimpleUploadedFile("input.pt", inp, content_type="application/octet-stream")
         request = HttpRequest()
         request.FILES.appendlist(key, input_file)
         file_content = get_file(request, key)
@@ -62,8 +67,8 @@ class UtilsTest(TestCase):
 
     def test_views_get_file_custom_validator(self):
         key = "model-key"
-        inp = pickle.dumps(torch.zeros(3, 3))
-        input_file = SimpleUploadedFile("input.pkl", inp, content_type="application/octet-stream")
+        inp = from_torch_tensor(torch.zeros(3, 3))
+        input_file = SimpleUploadedFile("input.pt", inp, content_type="application/octet-stream")
         request = HttpRequest()
         request.FILES.appendlist(key, input_file)
 
@@ -81,8 +86,8 @@ class UtilsTest(TestCase):
 
     def test_views_get_file_custom_validator_error(self):
         key = "model-key"
-        inp = pickle.dumps(torch.zeros(3, 3))
-        input_file = SimpleUploadedFile("input.pkl", inp, content_type="application/octet-stream")
+        inp = from_torch_tensor(torch.zeros(3, 3))
+        input_file = SimpleUploadedFile("input.pt", inp, content_type="application/octet-stream")
         request = HttpRequest()
         request.FILES.appendlist(key, input_file)
         error_message = "ERROR: Hello World!"

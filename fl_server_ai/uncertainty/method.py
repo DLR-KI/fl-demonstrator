@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
+# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 from typing import overload, Type
 
 from fl_server_core.models import Model, Training
@@ -23,6 +28,19 @@ def get_uncertainty_class(value: UncertaintyMethod) -> Type[UncertaintyBase]: ..
 
 
 def get_uncertainty_class(value: Model | Training | UncertaintyMethod) -> Type[UncertaintyBase]:
+    """
+    Get uncertainty class associated with a given Model, Training, or UncertaintyMethod object.
+
+    Args:
+        value (Model | Training | UncertaintyMethod): The object to retrieve the uncertainty class for.
+
+    Returns:
+        Type[UncertaintyBase]: The uncertainty class associated with the given object.
+
+    Raises:
+        ValueError: If the given object is not a Model, Training, or UncertaintyMethod,
+                    or if the uncertainty method associated with the object is unknown.
+    """
     if isinstance(value, UncertaintyMethod):
         method = value
     elif isinstance(value, Training):

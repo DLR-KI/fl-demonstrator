@@ -1,11 +1,16 @@
+# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
+# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 from django.test import TestCase
-import pickle
 import torch
 from unittest.mock import patch
 
 from fl_server_core.models.model import SWAGModel
 from fl_server_core.models.training import TrainingState, UncertaintyMethod
 from fl_server_core.tests.dummy import Dummy
+from fl_server_core.utils.torch_serialization import from_torch_module, from_torch_tensor
 
 from ..notification.training import TrainingSWAGRoundStartNotification
 from ..trainer.events import SWAGRoundFinished, TrainingRoundFinished
@@ -61,9 +66,11 @@ class SwagTest(TestCase):
         self.assertTrue(base_cls_next_method.called)
 
     def test_prediction(self):
-        model = pickle.dumps(torch.nn.Sequential(torch.nn.Linear(1, 1), torch.nn.Tanh()))
-        first_moment = pickle.dumps(torch.tensor([1.0, 0.0]))
-        second_moment = pickle.dumps(torch.tensor([1.0, 0.0]))
+        model = from_torch_module(torch.jit.script(
+            torch.nn.Sequential(torch.nn.Linear(1, 1), torch.nn.Tanh())
+        ))
+        first_moment = from_torch_tensor(torch.tensor([1.0, 0.0]))
+        second_moment = from_torch_tensor(torch.tensor([1.0, 0.0]))
         model = Dummy.create_model(SWAGModel, weights=model, swag_first_moment=first_moment,
                                    swag_second_moment=second_moment)
         Dummy.create_training(

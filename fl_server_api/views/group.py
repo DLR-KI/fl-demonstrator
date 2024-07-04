@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
+# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 from django.contrib.auth.models import Group as GroupModel
 from django.http import HttpRequest, HttpResponse
 from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiParameter
@@ -22,26 +27,30 @@ _default_group_example = OpenApiExample(
     value=1,
     parameter_only=("id", OpenApiParameter.PATH)
 )
+"""Default OpenAPI Specification example for getting a group by its ID."""
 
 
 class Group(ViewSet):
+    """
+    Group Model ViewSet.
+    """
 
     serializer_class = GroupSerializer
+    """The serializer for the ViewSet."""
 
     def _get_group(self, user: UserModel, group_id: int) -> GroupModel:
         """
-        Get group by id if user is member of the group.
-        Otherwise raise PermissionDenied.
+        Get a group by id if the user is a member of the group.
 
         Args:
-            user (UserModel):  user who makes the request
-            group_id (int): group id
+            user (UserModel): The user making the request.
+            group_id (int): The id of the group.
 
         Raises:
-            PermissionDenied: If user is not member of the group.
+            PermissionDenied: If the user is not a member of the group.
 
         Returns:
-            GroupModel: group instance
+            GroupModel: The group instance.
         """
         group = get_entity(GroupModel, pk=group_id)
         if not user.groups.contains(group):

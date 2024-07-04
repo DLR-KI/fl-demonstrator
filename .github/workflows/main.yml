@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
+# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 name: Main
 
 on:
@@ -50,6 +55,19 @@ jobs:
       - name: Start type checking
         run: bash ./dev mypy
 
+  license-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      - name: Install dependencies
+        run: bash ./dev install -e ".[all]"
+      - name: Start license check
+        run: bash ./dev licenses
+
   coverage:
     runs-on: ubuntu-latest
     services:
@@ -93,7 +111,7 @@ jobs:
         run: bash ./dev coverage
 
   build-and-push-docker-image:
-    needs: [lint-code, lint-doc, lint-scripts, mypy, coverage]
+    needs: [lint-code, lint-doc, lint-scripts, mypy, coverage, license-check]
     permissions:
       contents: read
       packages: write
@@ -132,7 +150,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   build-pages:
-    needs: [lint-code, lint-doc, lint-scripts, mypy, coverage]
+    needs: [lint-code, lint-doc, lint-scripts, mypy, coverage, license-check]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

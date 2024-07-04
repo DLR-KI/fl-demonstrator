@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
+# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 """
 General settings for DLR Federated Learning Demonstrator Server project.
 
@@ -10,6 +15,7 @@ For the full list of settings and their values, see
 """
 
 from dlr.ki.logging import get_default_logging_dict
+from importlib import metadata
 from pathlib import Path
 from os import environ
 from sys import argv
@@ -76,9 +82,26 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "DLR Federated Learning Demonstrator Server API",
-    "DESCRIPTION": "Catena-X ...",
-    "VERSION": "0.0.1.dev0",
+    "TITLE": "Federated Learning Demonstrator Server API",
+    "DESCRIPTION": """
+This OpenAPI Specification describes the server component of the Federated Learning Demonstrator,
+a sophisticated suite of tools designed for machine learning applications within a federated context.
+This server component plays a crucial role by orchestrating and notifying all training participants to ensure seamless
+and efficient operation.
+
+The complete Federated Learning (FL) demonstation platform acts as a proof of concept within the
+[Catena-X](https://catena-x.net/en) project.
+The primary goal is to demonstrate the feasibility and effectiveness of federated learning in real-world scenarios.
+
+For a comprehensive understanding and further details about the Federated Learning (FL) platform,
+please refer to the official [FL platform documentation](https://dlr-ki.github.io/fl-documentation).
+
+Use this OpenAPI Specification to explore and interact with the various endpoints provided by the server component
+of the Federated Learning Demonstrator.
+This specification will help developers, researchers, and data scientists to integrate, extend, and utilize
+federated learning capabilities effectively.
+""",
+    "VERSION": metadata.version("fl-demonstrator"),
     "SERVE_AUTHENTICATION": [],
     "PREPROCESSING_HOOKS": ["fl_server_api.openapi.custom_preprocessing_hook"],
 }
