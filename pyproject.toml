@@ -137,7 +137,7 @@ dependencies = [ # Optional
 [project.optional-dependencies] # Optional
 dev = [
   "pre-commit~=3.3.2",
-  "reuse~=3.0.2",
+  "reuse~=4.0.3",
   "tox~=4.5.1",
 ]
 test = [
