@@ -114,7 +114,7 @@ class InferenceTests(TestCase):
         self.assertEqual(response.status_code, 400)
         response_json = response.json()
         self.assertIsNotNone(response_json)
-        self.assertEqual(f"Model {unused_id} not found.", response_json["detail"])
+        self.assertEqual(f"GlobalModel {unused_id} not found.", response_json["detail"])
 
     def test_model_weights_corrupted(self):
         inp = from_torch_tensor(torch.zeros(3, 3))
@@ -168,3 +168,34 @@ class InferenceTests(TestCase):
         self.assertIsNotNone(inference)
         inference_tensor = torch.as_tensor(inference)
         self.assertTrue(torch.all(torch.tensor([2, 0, 0]) == inference_tensor))
+
+    def test_inference_input_shape_positive(self):
+        inp = from_torch_tensor(torch.zeros(3, 3))
+        model = Dummy.create_model(input_shape=[None, 3])
+        training = Dummy.create_training(actor=self.user, model=model)
+        input_file = SimpleUploadedFile(
+            "input.pt",
+            inp,
+            content_type="application/octet-stream"
+        )
+        response = self.client.post(
+            f"{BASE_URL}/inference/",
+            {"model_id": str(training.model.id), "model_input": input_file}
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_inference_input_shape_negative(self):
+        inp = from_torch_tensor(torch.zeros(3, 3))
+        model = Dummy.create_model(input_shape=[None, 5])
+        training = Dummy.create_training(actor=self.user, model=model)
+        input_file = SimpleUploadedFile(
+            "input.pt",
+            inp,
+            content_type="application/octet-stream"
+        )
+        response = self.client.post(
+            f"{BASE_URL}/inference/",
+            {"model_id": str(training.model.id), "model_input": input_file}
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()[0], "Input shape does not match model input shape.")

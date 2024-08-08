@@ -109,11 +109,18 @@ class Inference(ViewSet):
             self._logger.error(e)
             raise ValidationError("Inference Request could not be interpreted!")
 
-        model = get_entity(Model, pk=model_id)
+        # (Benedikt) imo, it does not make sense to allow inference on the local model updates, therefore I changed this
+        model = get_entity(GlobalModel, pk=model_id)
         input_tensor = to_torch_tensor(feature_vectors)
-        if isinstance(model, GlobalModel) and model.preprocessing is not None:
+        if model.preprocessing is not None:
             preprocessing = model.get_preprocessing_torch_model()
             input_tensor = preprocessing(input_tensor)
+
+        if model.input_shape is not None:
+            if not all(dim_input == dim_model for (dim_input, dim_model) in
+                       zip(input_tensor.shape, model.input_shape) if dim_model is not None):
+                raise ValidationError("Input shape does not match model input shape.")
+
         uncertainty_cls, inference, uncertainty = self.do_inference(model, input_tensor)
         return self._make_response(uncertainty_cls, inference, uncertainty, return_format)
 
@@ -137,11 +144,17 @@ class Inference(ViewSet):
             self._logger.error(e)
             raise ValidationError("Inference Request could not be interpreted!")
 
-        model = get_entity(Model, pk=model_id)
+        model = get_entity(GlobalModel, pk=model_id)
         input_tensor = torch.as_tensor(model_input)
-        if isinstance(model, GlobalModel) and model.preprocessing is not None:
+        if model.preprocessing is not None:
             preprocessing = model.get_preprocessing_torch_model()
             input_tensor = preprocessing(input_tensor)
+
+        if model.input_shape is not None:
+            if not all(dim_input == dim_model for (dim_input, dim_model) in
+                       zip(input_tensor.shape, model.input_shape) if dim_model is not None):
+                raise ValidationError("Input shape does not match model input shape.")
+
         uncertainty_cls, inference, uncertainty = self.do_inference(model, input_tensor)
         return self._make_response(uncertainty_cls, inference, uncertainty, return_format)
 
