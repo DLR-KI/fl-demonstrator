@@ -206,7 +206,7 @@ class Inference(ViewSet):
         else:
             model_input = request_body.get("model_input", None)
         if not model_input:
-            raise ValidationError("No uploaded file 'model_input' not found.")
+            raise ValidationError("No uploaded file 'model_input' found.")
         return self._try_decode_model_input(model_input)
 
     def _try_decode_model_input(self, model_input: Any) -> Any:
