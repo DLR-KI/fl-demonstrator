@@ -67,6 +67,15 @@ error_response_403 = create_error_response(
 """Generic OpenAPI 403 response."""
 
 
+error_response_404 = create_error_response(
+    "Not found",
+    "Not found",
+    "The server cannot find the requested resource.",
+    "Provide valid request data."
+)
+"""Generic OpenAPI 404 response."""
+
+
 def custom_preprocessing_hook(endpoints: List[Tuple[str, str, str, Callable]]):
     """
     Hide the "/api/dummy/" endpoint from the OpenAPI schema.

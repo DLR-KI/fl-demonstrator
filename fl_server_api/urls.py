@@ -38,7 +38,7 @@ urlpatterns = [
         {"get": "get_model_metrics", "post": "create_model_metrics"}
     ), name="model-metrics"),
     path("models/<str:id>/preprocessing/", view=Model.as_view(
-        {"post": "upload_model_preprocessing"}
+        {"get": "get_model_proprecessing", "post": "upload_model_preprocessing"}
     ), name="model-preprocessing"),
     path("models/<str:id>/swag/", view=Model.as_view({"post": "create_swag_stats"}), name="model-swag"),
     # trainings

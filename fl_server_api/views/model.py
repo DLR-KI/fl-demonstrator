@@ -16,6 +16,7 @@ from rest_framework import status
 from rest_framework.exceptions import APIException, NotFound, ParseError, PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.fields import UUIDField, CharField
+import torch
 from typing import Any, List, Union
 from uuid import UUID
 
@@ -37,7 +38,7 @@ from ..utils import get_entity, get_file
 from ..serializers.generic import ErrorSerializer, MetricSerializer
 from ..serializers.model import ModelSerializer, ModelSerializerNoWeightsWithStats, load_and_create_model_request, \
     GlobalModelSerializer, ModelSerializerNoWeights, verify_model_object
-from ..openapi import error_response_403
+from ..openapi import error_response_403, error_response_404
 
 
 class Model(ViewSet):
@@ -232,7 +233,7 @@ class Model(ViewSet):
             id (str): The unique identifier of the model.
 
         Returns:
-            HttpResponseBase: model as file response or 404 if model not found
+            HttpResponseBase: model as file response
         """
         model = get_entity(ModelDB, pk=id)
         if isinstance(model, SWAGModelDB) and model.swag_first_moment is not None:
@@ -245,6 +246,45 @@ class Model(ViewSet):
         #       and in case of sqlite the weights will be bytes and not a memoryview
         response = HttpResponse(model.weights, content_type="application/octet-stream")
         response["Content-Disposition"] = f'filename="model-{id}.pt"'
+        return response
+
+    @extend_schema(
+        responses={
+            status.HTTP_200_OK: OpenApiResponse(
+                response=bytes,
+                description="Proprecessing model is returned as bytes"
+            ),
+            status.HTTP_400_BAD_REQUEST: ErrorSerializer,
+            status.HTTP_403_FORBIDDEN: error_response_403,
+            status.HTTP_404_NOT_FOUND: error_response_404,
+        },
+    )
+    def get_model_proprecessing(self, _request: HttpRequest, id: str) -> HttpResponseBase:
+        """
+        Download the whole preprocessing model as PyTorch serialized file.
+
+        Args:
+            request (HttpRequest): The incoming request object.
+            id (str): The unique identifier of the model.
+
+        Returns:
+            HttpResponseBase: proprecessing model as file response or 404 if proprecessing model not found
+        """
+        model = get_entity(ModelDB, pk=id)
+        global_model: torch.nn.Module
+        if isinstance(model, GlobalModelDB):
+            global_model = model
+        elif isinstance(model, LocalModelDB):
+            global_model = model.base_model
+        else:
+            self._logger.error("Unknown model type. Not a GlobalModel and not a LocalModel.")
+            raise ValidationError(f"Unknown model type. Model id: {id}")
+        if global_model.preprocessing is None:
+            raise NotFound(f"Model '{id}' has no preprocessing model defined.")
+        # NOTE: FileResponse does strange stuff with bytes
+        #       and in case of sqlite the weights will be bytes and not a memoryview
+        response = HttpResponse(global_model.preprocessing, content_type="application/octet-stream")
+        response["Content-Disposition"] = f'filename="model-{id}-proprecessing.pt"'
         return response
 
     @extend_schema(responses={
