@@ -149,6 +149,7 @@ class ModelTests(TransactionTestCase):
         self.assertEqual(str(model.name), response_json["name"])
         self.assertEqual(str(model.description), response_json["description"])
         self.assertEqual(model.input_shape, response_json["input_shape"])
+        self.assertFalse(response_json["has_preprocessing"])
         # check stats
         stats = response_json["stats"]
         self.assertIsNotNone(stats)
@@ -231,6 +232,28 @@ class ModelTests(TransactionTestCase):
         self.assertIsNotNone(layer4["param_bytes"])
         self.assertIsNotNone(layer4["output_bytes"])
         self.assertIsNotNone(layer4["macs"])
+
+    def test_get_model_metadata_with_preprocessing(self):
+        model_bytes = from_torch_module(torch.nn.Sequential(
+            torch.nn.Linear(3, 64),
+            torch.nn.ELU(),
+            torch.nn.Linear(64, 1),
+        ))
+        torch_model_preprocessing = from_torch_module(transforms.Compose([
+            transforms.ToImage(),
+            transforms.ToDtype(torch.float32, scale=True),
+            transforms.Normalize(mean=(0.,), std=(1.,)),
+        ]))
+        model = Dummy.create_model(weights=model_bytes, preprocessing=torch_model_preprocessing, input_shape=[None, 3])
+        response = self.client.get(f"{BASE_URL}/models/{model.id}/metadata/")
+        self.assertEqual(200, response.status_code)
+        self.assertEqual("application/json", response["content-type"])
+        response_json = response.json()
+        self.assertEqual(str(model.id), response_json["id"])
+        self.assertEqual(str(model.name), response_json["name"])
+        self.assertEqual(str(model.description), response_json["description"])
+        self.assertEqual(model.input_shape, response_json["input_shape"])
+        self.assertTrue(response_json["has_preprocessing"])
 
     def test_get_model_metadata_torchscript_model(self):
         torchscript_model_bytes = from_torch_module(torch.jit.script(torch.nn.Sequential(
@@ -551,6 +574,30 @@ class ModelTests(TransactionTestCase):
         self.assertIsNotNone(model)
         self.assertIsNotNone(model.preprocessing)
         self.assertTrue(isinstance(model.get_preprocessing_torch_model(), torch.nn.Module))
+
+    def test_download_model_preprocessing(self):
+        torch_model_preprocessing = from_torch_module(torch.jit.script(torch.nn.Sequential(
+            transforms.Normalize(mean=(0.,), std=(1.,)),
+        )))
+        model = Dummy.create_model(owner=self.user, preprocessing=torch_model_preprocessing)
+        response = self.client.get(f"{BASE_URL}/models/{model.id}/preprocessing/")
+        self.assertEqual(200, response.status_code)
+        self.assertEqual("application/octet-stream", response["content-type"])
+        torch_model = torch.jit.load(io.BytesIO(response.content))
+        self.assertIsNotNone(torch_model)
+        self.assertTrue(isinstance(torch_model, torch.nn.Module))
+
+    def test_download_model_preprocessing_with_undefined_preprocessing(self):
+        model = Dummy.create_model(owner=self.user, preprocessing=None)
+        with self.assertLogs("django.request", level="WARNING") as cm:
+            response = self.client.get(f"{BASE_URL}/models/{model.id}/preprocessing/")
+        self.assertEqual(cm.output, [
+            f"WARNING:django.request:Not Found: /api/models/{model.id}/preprocessing/",
+        ])
+        self.assertEqual(404, response.status_code)
+        response_json = response.json()
+        self.assertIsNotNone(response_json)
+        self.assertEqual(f"Model '{model.id}' has no preprocessing model defined.", response_json["detail"])
 
     @patch("fl_server_ai.trainer.tasks.process_trainer_task.apply_async")
     def test_upload_update(self, apply_async: MagicMock):

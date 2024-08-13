@@ -41,7 +41,7 @@ def to_torch(obj: Any, supported_types: Type[T] | Tuple[Type[T], ...]):
                 message="'torch.load' received a zip file that looks like a TorchScript archive",
                 category=UserWarning
             )
-            t_obj = torch.load(obj)
+            t_obj = torch.load(obj, weights_only=False)
     except Exception as e:
         getLogger("fl.server").error(f"Error loading torch object: {e}")
         raise TorchDeserializationException("Error loading torch object") from e

@@ -93,6 +93,8 @@ def _create_model_serializer(cls: Type[TModel], *, name: Optional[str] = None) -
                 del data["weights"]
             if self.context.get("with-stats", False):
                 data["stats"] = self.analyze_torch_model(instance)
+            if isinstance(instance, GlobalModel):
+                data["has_preprocessing"] = bool(instance.preprocessing)
             return data
 
         def analyze_torch_model(self, instance: Model):
@@ -175,6 +177,7 @@ class ModelSerializerNoWeights(ModelSerializer):
     class Meta:
         model = Model
         exclude = ["polymorphic_ctype", "weights"]
+        include = ["has_preprocessing"]
 
 
 class ModelSerializerNoWeightsWithStats(ModelSerializerNoWeights):
@@ -186,6 +189,7 @@ class ModelSerializerNoWeightsWithStats(ModelSerializerNoWeights):
         model = Model
         exclude = ["polymorphic_ctype", "weights"]
         include = ["stats"]
+        include = ["has_preprocessing", "stats"]
 
 
 #######################################################################################################################

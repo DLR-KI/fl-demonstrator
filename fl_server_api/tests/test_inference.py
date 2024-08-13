@@ -3,11 +3,15 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+import base64
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 import json
+import io
 import pickle
 import torch
+import torch.nn
+from torchvision.transforms.functional import to_pil_image
 from uuid import uuid4
 
 from fl_server_core.tests import BASE_URL, Dummy
@@ -168,3 +172,103 @@ class InferenceTests(TestCase):
         self.assertIsNotNone(inference)
         inference_tensor = torch.as_tensor(inference)
         self.assertTrue(torch.all(torch.tensor([2, 0, 0]) == inference_tensor))
+
+    def test_inference_input_shape_positive(self):
+        inp = from_torch_tensor(torch.zeros(3, 3))
+        model = Dummy.create_model(input_shape=[None, 3])
+        training = Dummy.create_training(actor=self.user, model=model)
+        input_file = SimpleUploadedFile(
+            "input.pt",
+            inp,
+            content_type="application/octet-stream"
+        )
+        response = self.client.post(
+            f"{BASE_URL}/inference/",
+            {"model_id": str(training.model.id), "model_input": input_file}
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_inference_input_shape_negative(self):
+        inp = from_torch_tensor(torch.zeros(3, 3))
+        model = Dummy.create_model(input_shape=[None, 5])
+        training = Dummy.create_training(actor=self.user, model=model)
+        input_file = SimpleUploadedFile(
+            "input.pt",
+            inp,
+            content_type="application/octet-stream"
+        )
+        with self.assertLogs("root", level="WARNING") as cm:
+            response = self.client.post(
+                f"{BASE_URL}/inference/",
+                {"model_id": str(training.model.id), "model_input": input_file}
+            )
+        self.assertEqual(cm.output, [
+            "WARNING:django.request:Bad Request: /api/inference/",
+        ])
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()[0], "Input shape does not match model input shape.")
+
+    def test_inference_input_pil_image(self):
+        img = to_pil_image(torch.zeros(1, 5, 5))
+        img_byte_arr = io.BytesIO()
+        img.save(img_byte_arr, format="jpeg")
+        img_byte_arr = img_byte_arr.getvalue()
+
+        torch.manual_seed(42)
+        torch_model = torch.jit.script(torch.nn.Sequential(
+            torch.nn.Conv2d(1, 2, 3),
+            torch.nn.Flatten(),
+            torch.nn.Linear(3*3, 2)
+        ))
+        model = Dummy.create_model(input_shape=[None, 5, 5], weights=from_torch_module(torch_model))
+        training = Dummy.create_training(actor=self.user, model=model)
+        input_file = SimpleUploadedFile(
+            "input.pt",
+            img_byte_arr,
+            content_type="application/octet-stream"
+        )
+        response = self.client.post(
+            f"{BASE_URL}/inference/",
+            {"model_id": str(training.model.id), "model_input": input_file}
+        )
+        self.assertEqual(response.status_code, 200)
+
+        results = pickle.loads(response.content)
+        self.assertEqual({}, results["uncertainty"])
+        inference = results["inference"]
+        self.assertIsNotNone(inference)
+        inference_tensor = torch.as_tensor(inference)
+        self.assertTrue(torch.all(torch.tensor([0, 0]) == inference_tensor))
+
+    def test_inference_input_pil_image_base64(self):
+        img = to_pil_image(torch.zeros(1, 5, 5))
+        img_byte_arr = io.BytesIO()
+        img.save(img_byte_arr, format="jpeg")
+        img_byte_arr = img_byte_arr.getvalue()
+        inp = base64.b64encode(img_byte_arr)
+
+        torch.manual_seed(42)
+        torch_model = torch.jit.script(torch.nn.Sequential(
+            torch.nn.Conv2d(1, 2, 3),
+            torch.nn.Flatten(),
+            torch.nn.Linear(3*3, 2)
+        ))
+        model = Dummy.create_model(input_shape=[None, 5, 5], weights=from_torch_module(torch_model))
+        training = Dummy.create_training(actor=self.user, model=model)
+        input_file = SimpleUploadedFile(
+            "input.pt",
+            inp,
+            content_type="application/octet-stream"
+        )
+        response = self.client.post(
+            f"{BASE_URL}/inference/",
+            {"model_id": str(training.model.id), "model_input": input_file}
+        )
+        self.assertEqual(response.status_code, 200)
+
+        results = pickle.loads(response.content)
+        self.assertEqual({}, results["uncertainty"])
+        inference = results["inference"]
+        self.assertIsNotNone(inference)
+        inference_tensor = torch.as_tensor(inference)
+        self.assertTrue(torch.all(torch.tensor([0, 0]) == inference_tensor))
