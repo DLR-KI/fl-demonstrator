@@ -7,6 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 
 # Federated Learning Demonstrator
 
+[![DOI](https://zenodo.org/badge/770438830.svg)](https://doi.org/10.5281/zenodo.13951204 )
+
 This repository contains the Federated Learning Demonstrator, a comprehensive suite of tools designed for machine learning applications in a Federated context.
 This server component that handles the orchestration and notification of all training participants and ensuring smooth and efficient operation.
 
