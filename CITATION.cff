@@ -3,18 +3,32 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
 cff-version: 1.2.0
-message: "If you use this software, please cite it as below."
+title: DLR Federated Learning Logging Base
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
 authors:
-  - family-names: Heinrich
-    given-names: Florian
-    orcid: https://orcid.org/0009-0007-0792-7908
-  - family-names: Franke
-    given-names: Benedikt
-    orcid: https://orcid.org/0000-0003-0202-2804
-title: "DLR Federated Learning Demonstrator"
-version: 1.0.1
+  - given-names: Florian
+    family-names: Heinrich
+    email: florian.heinrich@dlr.de
+    affiliation: German Aerospace Center (DLR)
+    orcid: 'https://orcid.org/0009-0007-0792-7908'
+  - given-names: Benedikt
+    family-names: Franke
+    email: benedikt.franke@dlr.de
+    affiliation: German Aerospace Center (DLR)
+    orcid: 'https://orcid.org/0000-0003-0202-2804'
 identifiers:
   - type: doi
-    value: 10.5281/zenodo.13951205 
+    value: 10.5281/zenodo.13951205  
+repository-code: 'https://github.com/DLR-KI/fl-demonstrator'
+url: 'https://dlr-ki.github.io/fl-demonstrator/'
+keywords:
+  - Federaed Machine Learning
+  - Python
 date-released: 2024-07-31
