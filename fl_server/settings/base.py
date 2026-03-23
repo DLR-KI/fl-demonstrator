@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "fl_server_ai",
     "fl_server_api",
     "drf_spectacular",
+    "django.contrib.postgres",
 ]
 
 MIDDLEWARE = [

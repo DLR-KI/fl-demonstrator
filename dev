@@ -287,6 +287,7 @@ function mypy() {
 
 function coverage() {
   info "run python tests with coverage"
+  # TODO should we start the DB here (docker compose up db -d) or better not?
   python -m coverage run manage.py test
   python -m coverage html --directory "${BUILD_ROOT}/htmlcov"
 }

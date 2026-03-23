@@ -164,7 +164,7 @@ class AiWorkerTest(TestCase):
         training = Training.objects.get(id=training.id)
         self.assertFalse(training.locked)
         model = training.model
-        self.assertEquals(TrainingState.ONGOING, training.state)  # next would be ModelTestFinished
+        self.assertEqual(TrainingState.ONGOING, training.state)  # next would be ModelTestFinished
         fst = model.first_moment
         snd = model.second_moment
         torch.testing.assert_close(torch.zeros(15), fst)
