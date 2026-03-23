@@ -107,23 +107,24 @@ classifiers = [  # Optional
 # For an analysis of this field vs pip's requirements files see:
 # https://packaging.python.org/discussions/install-requires-vs-requirements/
 dependencies = [ # Optional
-  "celery~=5.3.0",
-  "django~=4.0.0",
-  "django-cors-headers~=4.1.0",
-  "django-polymorphic~=3.1.0",
-  "django-redis~=5.2.0",
-  "djangorestframework~=3.14.0",
-  "docstring-parser~=0.15",
-  "drf-spectacular~=0.26.3",
+  "celery>=5.3.0",
+  "django>=4.0.0",
+  "django-cors-headers>=4.1.0",
+  "django-polymorphic>=3.1.0",
+  "django-redis>=5.2.0",
+  "djangorestframework>=3.14.0",
+  "docstring-parser>=0.15",
+  "drf-spectacular>=0.26.3",
   "dlr-logging @ git+https://github.com/DLR-KI/fl-logging-base.git@main",  # noqa: E501
-  "Faker~=20.1.0",  # dummy data generation
-  "marshmallow~=3.19.0",
-  "numpy~=1.24.3",
-  "psycopg2-binary~=2.9.6",  # cspell:ignore psycopg
-  "requests~=2.31.0",
-  "torch~=2.3",
-  "torchinfo~=1.8",
-  "torchvision~=0.18",
+  "Faker>=20.1.0",  # dummy data generation
+  "marshmallow>=3.19.0",
+  "numpy>=1.24.3",
+  "psycopg2-binary>=2.9.6",  # cspell:ignore psycopg
+  "requests>=2.31.0",
+  "torch>=2.3",
+  "torchinfo>=1.8",
+  "torchvision>=0.18",
+  "types-pyyaml>=6.0.12.20250915",
 ]
 
 # List additional groups of dependencies here (e.g. development
@@ -136,25 +137,25 @@ dependencies = [ # Optional
 # projects.
 [project.optional-dependencies] # Optional
 dev = [
-  "pre-commit~=3.3.2",
-  "reuse~=4.0.3",
-  "tox~=4.5.1",
+  "pre-commit~=4.5.1",
+  "reuse~=6.2.0",
+  "tox~=4.50.3",
 ]
 test = [
-  "autopep8~=2.0.2",
-  "coverage~=7.2.7",
-  "flake8~=6.0.0",
+  "autopep8~=2.3.2",
+  "coverage~=7.13.5",
+  "flake8~=7.3.0",
   "flake8-pyproject~=1.2.3",
   "licensecheck",  # no version, install latest version
-  "mypy~=1.3.0",
-  "pytest-django~=4.5.2",
-  "responses~=0.23.1",
-  "shellcheck-py~=0.9.0.6",
+  "mypy~=1.19.1",
+  "pytest-django~=4.12.0",
+  "responses~=0.26.0 ",
+  "shellcheck-py~=0.11.0.1",
 ]
 stubs = [
-  "celery-types~=0.17.0",
-  "types-requests~=2.31.0",
-  "types-tabulate~=0.9.0.3",
+  "celery-types~=0.26.0",
+  "types-requests~=2.32.4.20260107",
+  "types-tabulate~=0.10.0.20260308",
 ]
 doc = [
   "portray @ git+https://github.com/HeinrichAD/portray.git@v1.8.0-dev",

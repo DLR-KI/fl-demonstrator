@@ -48,5 +48,7 @@
   "MD049": { "style": "underscore" },
 
   // Set strong style to asterisk (use **text** not __text__ for strong)
-  "MD050": { "style": "asterisk" }
+  "MD050": { "style": "asterisk" },
+  
+  "MD059": false
 }

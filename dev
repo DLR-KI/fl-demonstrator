@@ -96,7 +96,7 @@ function version() {
 function versions() {
   info "versions"
   info "$(python --version)"
-  info "$(python -m pip --version)"
+  info "$(uv --version)"
   if ! command -v docker > /dev/null 2>&1; then
     warn "docker not found, skipping docker version"
   else
@@ -111,9 +111,9 @@ function install() {
   versions
   info "install package"
   if [ "$#" -eq "0" ]; then
-    python -m pip install -e .
+    uv pip install -e .
   else
-    python -m pip install "$@"
+    uv pip install "$@"
 
     # check if "doc" extra should be installed
     install_doc=false
@@ -270,8 +270,8 @@ function lint-doc() {
 function lint-scripts() {
   info "lint bash scripts"
   info "shellcheck $(shellcheck --version | head -n 2 | tail -n 1)"
-  shellcheck --external-sources --shell bash --source-path "${PROJECT_ROOT}" "${PROJECT_ROOT}/dev"
-  shellcheck --external-sources --shell bash --source-path "${SCRIPTS_ROOT}" "${SCRIPTS_ROOT}/"*.sh
+  shellcheck --external-sources --shell bash -e SC2329 --source-path "${PROJECT_ROOT}" "${PROJECT_ROOT}/dev"
+  shellcheck --external-sources --shell bash -e SC2329 --source-path "${SCRIPTS_ROOT}" "${SCRIPTS_ROOT}/"*.sh
 }
 
 function mypy() {
@@ -339,9 +339,9 @@ function safety-check() {
   # main only no dev dependencies etc.
   python -m tox --recreate -e safety
   # alternative
-  #python -m pip install -U safety
+  #uv pip install -U safety
   #safety check
-  ##python -m pip uninstall safety
+  ##uv pip uninstall safety
 }
 
 
