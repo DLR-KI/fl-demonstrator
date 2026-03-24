@@ -17,7 +17,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
       - name: Install dependencies
-        run: uv sync --extra all
+        run: uv sync --all-extras
       - name: Start static code analysis
         run: bash ./dev lint-code
 
@@ -47,7 +47,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
       - name: Install dependencies
-        run: uv sync --extra all
+        run: uv sync --all-extras
       - name: Start type checking
         run: bash ./dev mypy
 
@@ -58,7 +58,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
       - name: Install dependencies
-        run: uv sync --extra all
+        run: uv sync --all-extras
       - name: Start license check
         run: bash ./dev licenses
 
@@ -151,7 +151,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
       - name: Install dependencies
-        run: uv sync --extra all
+        run: uv sync --all-extras
       - name: Build pages
         run: bash ./dev doc-build
       - name: Fix permissions
