@@ -49,8 +49,7 @@ class UserTests(TestCase):
 
     def test_get_user_via_url_token(self):
         user = Dummy.create_user()
-        token = Token.objects.get(user=user).key
-        credentials = base64.b64encode(token.encode("utf-8")).decode("utf-8")
+        credentials = base64.b64encode(f"{user.username}:secret".encode("utf-8")).decode("utf-8")
         self.client.defaults["HTTP_AUTHORIZATION"] = "Basic " + credentials
         # Note: Django self.client does not support: http://username:password@localhost:8000/api/...
         response = self.client.get(f"{BASE_URL}/users/")
