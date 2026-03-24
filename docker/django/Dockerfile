@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-FROM ghcr.io/astral-sh/uv:latest
+FROM python:3.10-slim
 
 # system dependencies
 RUN apt-get update && \
