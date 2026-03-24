@@ -107,31 +107,22 @@ function versions() {
 
 function install() {
   versions
-  info "install package"
-  if [ "$#" -eq "0" ]; then
-    uv sync --editable --extra all
-  else
-    uv add "$@"
-
-    # check if "doc" extra should be installed
-    install_doc=false
-    for value in "$@"; do
-      value="${value//[[:blank:]]/}"
-      [[ "$value" =~ \[(.*,)?(doc|all)(,.*)?\] ]] && install_doc=true
-    done
-    if [[ "$install_doc" == "true" ]]; then
-      info "install markdown linter"
-      if command -v npm > /dev/null 2>&1; then
-        npm install --no-save markdownlint-cli2
-      else
-        warn "npm not found, skipping markdownlint-cli2 installation"
-      fi
+  if ! command -v uv &> /dev/null; then
+    if ! command -v curl &> /dev/null; then
+      error "uv and curl are not installed. Please install one of them."
+      exit 1
     fi
+    info "install uv"
+    curl -LsSf https://astral.sh/uv/install.sh | sh
   fi
-  #info "post-install"
-  #py_pack_dir="$(python -c 'import site; print(site.getsitepackages()[0])')"
-  #info " + setup user documentation plugins"
-  #cp "$py_pack_dir/plantuml_markdown.py" "$py_pack_dir/markdown/extensions/"
+  info "install package"
+  uv sync --editable --all-extras
+  info "install markdown linter"
+  if command -v npm > /dev/null 2>&1; then
+    npm install --no-save markdownlint-cli2
+  else
+    warn "npm not found, skipping markdownlint-cli2 installation"
+  fi
 }
 
 function clean() {
