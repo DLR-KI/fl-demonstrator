@@ -5,7 +5,7 @@ site_name: Federated Learning Demonstrator
 
 repo_name: fl-demonstrator
 repo_url: https://github.com/DLR-KI/fl-demonstrator
-#edit_uri: blob/main/docs/
+edit_uri: edit/main/docs/
 
 theme:
   name: material
@@ -46,8 +46,9 @@ markdown_extensions:
       permalink: true
   - pymdownx.arithmatex:
       generic: true
-  #- pymdownx.blocks.tab:
-  #    alternate_style: true
+  - pymdownx.blocks.details
+  - pymdownx.blocks.tab:
+      alternate_style: true
   - pymdownx.details
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
@@ -63,28 +64,71 @@ markdown_extensions:
 
 plugins:
   - search
-  - portray
+  - coverage:
+      html_report_dir: build/htmlcov
+  # - autorefs
+  - api-autonav:
+      # https://github.com/tlambert03/mkdocs-api-autonav?tab=readme-ov-file#configuration
+      modules: ["fl_server", "fl_server_ai", "fl_server_api", "fl_server_core"]
+      exclude_private: true
+  - mkdocstrings:
+      enabled: !ENV [MKDOCSTRINGS_ENABLED, true]
+      handlers:
+        python:
+          inventories:
+            - url: https://docs.python.org/3/objects.inv
+              domains: [std, py]
+            - https://typing-extensions.readthedocs.io/en/latest/objects.inv
+          options:
+            # https://mkdocstrings.github.io/python/usage/configuration/general/
+            # general
+            backlinks: tree
+            show_inheritance_diagram: true
+            # headings
+            heading_level: 2
+            parameter_headings: true
+            show_root_heading: true
+            show_category_heading: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            # members
+            summary: true
+            # docstring
+            #docstring_style: google
+            #docstring_section_style: table
+            show_if_no_docstring: true
+            # signatures
+            line_length: 80
+            modernize_annotations: true
+            show_signature_annotations: true
+            separate_signature: true
+            show_overloads: true
+            signature_crossrefs: true
+  - minify:
+      minify_html: !ENV [DEPLOY, false]
+      htmlmin_opts:
+        remove_comments: true
 
 extra:
   social:
     - icon: dlr-logo
       link: https://www.dlr.de/en
     - icon: dlr-ki
-      link: https://www.dlr.de/ki/en
+      link: https://www.dlr.de/en/ki
     - icon: fontawesome/brands/square-github
-      link: https://github.com/DLR-KI/fl-demonstrator
+      link: https://github.com/DLR-KI
 
 extra_javascript:
-  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.js
-  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/contrib/auto-render.min.js
+  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js
+  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js
   - javascripts/katex.js
 
 extra_css:
-  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.css
+  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css
   - styles/style.css
 
 copyright: |
-  &copy; 2024
+  &copy; 2026
   <a href="https://www.dlr.de/en/ki/about-us/departments/algorithms-hybrid-solutions" target="_blank" rel="noopener">
     DLR KI ALG
   </a>

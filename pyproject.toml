@@ -135,29 +135,39 @@ dependencies = [ # Optional
 # projects.
 [project.optional-dependencies] # Optional
 dev = [
-  "pre-commit~=4.5.1",
-  "reuse~=6.2.0",
-  "tox~=4.50.3",
+  "pre-commit",
+  "reuse",
+  "tox",
+  "uv",
 ]
 test = [
-  "autopep8~=2.3.2",
-  "coverage~=7.13.5",
-  "flake8~=7.3.0",
-  "flake8-pyproject~=1.2.3",
-  "licensecheck",  # no version, install latest version
-  "mypy~=1.19.1",
-  "pytest-django~=4.12.0",
-  "responses~=0.26.0 ",
-  "shellcheck-py~=0.11.0.1",
+  "autopep8",
+  "coverage",
+  "flake8",
+  "flake8-pyproject",
+  "licensecheck",
+  "mypy",
+  "pytest-django",
+  "responses",
+  "shellcheck-py",
 ]
 stubs = [
-  "celery-types~=0.26.0",
-  "types-requests~=2.32.4.20260107",
-  "types-tabulate~=0.10.0.20260308",
+  "celery-types",
+  "types-requests",
+  "types-tabulate",
 ]
 doc = [
-  "portray @ git+https://github.com/HeinrichAD/portray.git@v1.8.0-dev",
-  #"plantuml-markdown~=3.9.2",  # post-install: cp plantuml_markdown.py into markdown/extensions
+  "mkdocs",
+  "mkdocs-awesome-pages-plugin",
+  "mkdocs-git-revision-date-localized-plugin",
+  "mkdocs-material",
+  "mkdocs-video",
+  "mkdocs-minify-plugin",
+  "mkdocs-api-autonav",
+  "mkdocstrings",
+  "mkdocstrings-python",
+  "pymdown-extensions",
+  "mkdocs-coverage>=2.0.0",
 ]
 all = ["fl-demonstrator[dev,test,stubs,doc]"]
 
