@@ -95,7 +95,7 @@ function version() {
 
 function versions() {
   info "versions"
-  info "$(python --version)"
+  # info "$(python --version)" <- not necessarily the uv python
   info "$(uv --version)"
   if ! command -v docker > /dev/null 2>&1; then
     warn "docker not found, skipping docker version"
@@ -161,7 +161,7 @@ function start() {
 function celery() {
   docker compose up -d redis
   DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE:-"fl_server.settings.development"}" \
-    python -m celery --workdir "${PROJECT_ROOT_ABSOLUTE}" --app fl_server_ai worker --loglevel=INFO
+    uv run celery --workdir "${PROJECT_ROOT_ABSOLUTE}" --app fl_server_ai worker --loglevel=INFO
 }
 
 function migrate() {
@@ -234,7 +234,7 @@ function test() {
   coverage-report
   if [ "${HTTP_SERVE}" = "true" ]; then
     if [ -d "${BUILD_ROOT}/htmlcov" ]; then
-      python -m http.server --directory "${BUILD_ROOT}/htmlcov" 8080
+      uv run http.server --directory "${BUILD_ROOT}/htmlcov" 8080
     else
       error "no coverage report found"
       exit 1
@@ -252,12 +252,12 @@ function lint() {
 
 function lint-code() {
   info "lint code"
-  info "flake8 version: $(python -m flake8 --version | xargs)"
-  python -m flake8 "${SOURCE_CORE}"
-  python -m flake8 "${SOURCE_API}"
-  python -m flake8 "${SOURCE_AI}"
-  python -m flake8 "${SOURCE_DJANGO}"
-  python -m flake8 "${SCRIPTS_ROOT}"
+  info "flake8 version: $(uv run flake8 --version | xargs)"
+  uv run flake8 "${SOURCE_CORE}"
+  uv run flake8 "${SOURCE_API}"
+  uv run flake8 "${SOURCE_AI}"
+  uv run flake8 "${SOURCE_DJANGO}"
+  uv run flake8 "${SCRIPTS_ROOT}"
 }
 
 function lint-doc() {
@@ -276,32 +276,32 @@ function lint-scripts() {
 
 function mypy() {
   info "type checking"
-  python -m mypy "${SOURCE_CORE}"
-  python -m mypy "${SOURCE_API}"
-  python -m mypy "${SOURCE_AI}"
-  python -m mypy "${SOURCE_DJANGO}"
+  uv run mypy "${SOURCE_CORE}"
+  uv run mypy "${SOURCE_API}"
+  uv run mypy "${SOURCE_AI}"
+  uv run mypy "${SOURCE_DJANGO}"
   if find "${SCRIPTS_ROOT}" -type f -name "*.py" | grep -q .; then
-    python -m mypy "${SCRIPTS_ROOT}"
+    uv run mypy "${SCRIPTS_ROOT}"
   fi
 }
 
 function coverage() {
   info "run python tests with coverage"
   # TODO should we start the DB here (docker compose up db -d) or better not?
-  python -m coverage run manage.py test
-  python -m coverage html --directory "${BUILD_ROOT}/htmlcov"
+  uv run coverage run manage.py test
+  uv run coverage html --directory "${BUILD_ROOT}/htmlcov"
 }
 
 function coverage-report() {
   info "print test coverage report"
-  python -m coverage report
+  uv run coverage report
 }
 
 function doc() {
   versions
   info
-  mkdocs_version="$(python -m mkdocs --version)"
-  info "${mkdocs_version#"python -m "}"
+  mkdocs_version="$(uv run mkdocs --version)"
+  info "${mkdocs_version#"uv run "}"
   # check if the user has passed the --dirtyreload flag
   dirty_flag=false
   for value in "$@"; do
@@ -315,30 +315,30 @@ function doc() {
   # create and serve documentation
   DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE:-"fl_server.settings.production"}" \
     FL_DJANGO_SECRET_KEY="${FL_DJANGO_SECRET_KEY:-}" FL_POSTGRES_PASSWD="${FL_POSTGRES_PASSWD:-}" \
-    python -m mkdocs serve "$@"
+    uv run mkdocs serve "$@"
 }
 
 function doc-build() {
   versions
-  mkdocs_version="$(python -m mkdocs --version)"
-  info "${mkdocs_version#"python -m "}"
+  mkdocs_version="$(uv run mkdocs --version)"
+  info "${mkdocs_version#"uv run "}"
   info "build documentation"
   DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE:-"fl_server.settings.production"}" \
     FL_DJANGO_SECRET_KEY="${FL_DJANGO_SECRET_KEY:-}" FL_POSTGRES_PASSWD="${FL_POSTGRES_PASSWD:-}" \
-    python -m mkdocs build "$@"
+    uv run mkdocs build "$@"
 }
 
 function licenses() {
   info "search for license conflicts"
   licensecheck
   info "search for non-compliant files with REUSE"
-  python -m reuse lint
+  uv run reuse lint
 }
 
 function safety-check() {
   info "check dependencies for known security vulnerabilities"
   # main only no dev dependencies etc.
-  python -m tox --recreate -e safety
+  uv run tox --recreate -e safety
   # alternative
   #uv pip install -U safety
   #safety check
