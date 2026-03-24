@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
-        run: bash uv sync --extra all
+        run: uv sync --extra all
       - name: Start static code analysis
         run: bash ./dev lint-code
 
@@ -47,7 +47,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
-        run: bash uv sync --extra all
+        run: uv sync --extra all
       - name: Start type checking
         run: bash ./dev mypy
 
@@ -58,7 +58,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
-        run: bash uv sync --extra all
+        run: uv sync --extra all
       - name: Start license check
         run: bash ./dev licenses
 
@@ -91,7 +91,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
-        run: bash uv sync --extra all
+        run: uv sync --extra all
       - name: Start coverage
         env:
           FL_POSTGRES_HOST: localhost
@@ -151,7 +151,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
-        run: bash uv sync --extra all
+        run: uv sync --extra all
       - name: Build pages
         run: bash ./dev doc-build
       - name: Fix permissions
