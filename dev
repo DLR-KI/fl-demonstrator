@@ -268,8 +268,8 @@ function lint-doc() {
 function lint-scripts() {
   info "lint bash scripts"
   info "shellcheck $(shellcheck --version | head -n 2 | tail -n 1)"
-  shellcheck --external-sources --shell bash -e SC2329 --source-path "${PROJECT_ROOT}" "${PROJECT_ROOT}/dev"
-  shellcheck --external-sources --shell bash -e SC2329 --source-path "${SCRIPTS_ROOT}" "${SCRIPTS_ROOT}/"*.sh
+  shellcheck --external-sources --shell bash --source-path "${PROJECT_ROOT}" "${PROJECT_ROOT}/dev"
+  shellcheck --external-sources --shell bash --source-path "${SCRIPTS_ROOT}" "${SCRIPTS_ROOT}/"*.sh
 }
 
 function mypy() {
