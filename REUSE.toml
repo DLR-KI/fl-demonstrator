@@ -1,16 +1,13 @@
-# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
-# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
-#
+# SPDX-FileCopyrightText: 2026 German Aerospace Center (DLR)
 # SPDX-License-Identifier: Apache-2.0
 
 version = 1
 SPDX-PackageName = "fl-demonstrator"
-SPDX-PackageSupplier = ["Benedikt Franke <benedikt.franke@dlr.de>", "Florian Heinrich <florian.heinrich@dlr.de>"]
+SPDX-PackageSupplier = ["2026 German Aerospace Center (DLR)"]
 SPDX-PackageDownloadLocation = "https://github.com/DLR-KI/fl-demonstrator"
 
 [[annotations]]
 path = ["uv.lock"]
 precedence = "aggregate"
-SPDX-FileCopyrightText = ["2024 Benedikt Franke <benedikt.franke@dlr.de>", "2024 Florian Heinrich <florian.heinrich@dlr.de>"]
+SPDX-FileCopyrightText = ["2026 German Aerospace Center (DLR)"]
 SPDX-License-Identifier = "Apache-2.0"
-
