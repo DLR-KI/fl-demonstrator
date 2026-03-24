@@ -234,7 +234,7 @@ function test() {
   coverage-report
   if [ "${HTTP_SERVE}" = "true" ]; then
     if [ -d "${BUILD_ROOT}/htmlcov" ]; then
-      uv run http.server --directory "${BUILD_ROOT}/htmlcov" 8080
+      uv run -m http.server --directory "${BUILD_ROOT}/htmlcov" 8080
     else
       error "no coverage report found"
       exit 1
