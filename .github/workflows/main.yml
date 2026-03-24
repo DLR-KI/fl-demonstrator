@@ -11,20 +11,18 @@ on:
 
 jobs:
   lint-code:
-    runs-on: ghcr.io/astral-sh/uv:latest
+    runs-on: ubuntu:latest
+    container:
+      image: ghcr.io/astral-sh/uv:latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-          cache: 'pip'
       - name: Install dependencies
-        run: bash ./dev install -e ".[all]"
+        run: bash uv sync --extra all
       - name: Start static code analysis
         run: bash ./dev lint-code
 
   lint-doc:
-    runs-on: ghcr.io/astral-sh/uv:latest
+    runs-on: ubuntu:latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -36,40 +34,38 @@ jobs:
         run: bash ./dev lint-doc
 
   lint-scripts:
-    runs-on: ghcr.io/astral-sh/uv:latest
+    runs-on: ubuntu:latest
     steps:
       - uses: actions/checkout@v4
       - name: Start shell script analysis tool
         run: bash ./dev lint-scripts
 
   mypy:
-    runs-on: ghcr.io/astral-sh/uv:latest
+    runs-on: ubuntu:latest
+    container:
+          image: ghcr.io/astral-sh/uv:latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-          cache: 'pip'
       - name: Install dependencies
-        run: bash ./dev install -e ".[all]"
+        run: bash uv sync --extra all
       - name: Start type checking
         run: bash ./dev mypy
 
   license-check:
-    runs-on: ghcr.io/astral-sh/uv:latest
+    runs-on: ubuntu:latest
+    container:
+      image: ghcr.io/astral-sh/uv:latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-          cache: 'pip'
       - name: Install dependencies
-        run: bash ./dev install -e ".[all]"
+        run: bash uv sync --extra all
       - name: Start license check
         run: bash ./dev licenses
 
   coverage:
-    runs-on: ghcr.io/astral-sh/uv:latest
+    runs-on: ubuntu:latest
+    container:
+      image: ghcr.io/astral-sh/uv:latest
     services:
       postgres:
         image: postgres:latest
@@ -94,12 +90,8 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-          cache: 'pip'
       - name: Install dependencies
-        run: bash ./dev install -e ".[all]"
+        run: bash uv sync --extra all
       - name: Start coverage
         env:
           FL_POSTGRES_HOST: localhost
@@ -117,7 +109,9 @@ jobs:
       packages: write
     env:
       REGISTRY: ghcr.io
-    runs-on: ghcr.io/astral-sh/uv:latest
+    runs-on: ubuntu:latest
+    container:
+      image: ghcr.io/astral-sh/uv:latest
     strategy:
       matrix:
         docker_target: ['celery', 'django']
@@ -151,15 +145,13 @@ jobs:
 
   build-pages:
     needs: [lint-code, lint-doc, lint-scripts, mypy, coverage, license-check]
-    runs-on: ghcr.io/astral-sh/uv:latest
+    runs-on: ubuntu:latest
+    container:
+      image: ghcr.io/astral-sh/uv:latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-          cache: 'pip'
       - name: Install dependencies
-        run: bash ./dev install -e ".[all]"
+        run: bash uv sync --extra all
       - name: Build pages
         run: bash ./dev doc-build
       - name: Fix permissions
@@ -181,7 +173,7 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ghcr.io/astral-sh/uv:latest
+    runs-on: ubuntu-latest
     steps:
       - name: Deploy to GitHub Pages
         id: deployment

@@ -111,9 +111,9 @@ function install() {
   versions
   info "install package"
   if [ "$#" -eq "0" ]; then
-    uv pip install -e .
+    uv sync --editable --extra all
   else
-    uv pip install "$@"
+    uv add "$@"
 
     # check if "doc" extra should be installed
     install_doc=false
