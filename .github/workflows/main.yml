@@ -13,8 +13,7 @@ jobs:
   lint-code:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/astral-sh/uv:latest
-      options: --entrypoint /bin/bash
+      image: ghcr.io/astral-sh/uv:debian-slim
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
@@ -44,8 +43,7 @@ jobs:
   mypy:
     runs-on: ubuntu-latest
     container:
-          image: ghcr.io/astral-sh/uv:latest
-          options: --entrypoint /bin/bash
+          image: ghcr.io/astral-sh/uv:debian-slim
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
@@ -56,8 +54,7 @@ jobs:
   license-check:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/astral-sh/uv:latest
-      options: --entrypoint /bin/bash
+      image: ghcr.io/astral-sh/uv:debian-slim
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
@@ -68,8 +65,7 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/astral-sh/uv:latest
-      options: --entrypoint /bin/bash
+      image: ghcr.io/astral-sh/uv:debian-slim
     services:
       postgres:
         image: postgres:latest
@@ -115,8 +111,7 @@ jobs:
       REGISTRY: ghcr.io
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/astral-sh/uv:latest
-      options: --entrypoint /bin/bash
+      image: ghcr.io/astral-sh/uv:debian-slim
     strategy:
       matrix:
         docker_target: ['celery', 'django']
@@ -152,8 +147,7 @@ jobs:
     needs: [lint-code, lint-doc, lint-scripts, mypy, coverage, license-check]
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/astral-sh/uv:latest
-      options: --entrypoint /bin/bash
+      image: ghcr.io/astral-sh/uv:debian-slim
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
