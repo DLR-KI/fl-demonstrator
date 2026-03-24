@@ -330,7 +330,7 @@ function doc-build() {
 
 function licenses() {
   info "search for license conflicts"
-  licensecheck
+  uv run licensecheck
   info "search for non-compliant files with REUSE"
   uv run reuse lint
 }
