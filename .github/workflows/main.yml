@@ -11,7 +11,7 @@ on:
 
 jobs:
   lint-code:
-    runs-on: ubuntu:latest
+    runs-on: ubuntu-latest
     container:
       image: ghcr.io/astral-sh/uv:latest
     steps:
@@ -22,7 +22,7 @@ jobs:
         run: bash ./dev lint-code
 
   lint-doc:
-    runs-on: ubuntu:latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -34,14 +34,14 @@ jobs:
         run: bash ./dev lint-doc
 
   lint-scripts:
-    runs-on: ubuntu:latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Start shell script analysis tool
         run: bash ./dev lint-scripts
 
   mypy:
-    runs-on: ubuntu:latest
+    runs-on: ubuntu-latest
     container:
           image: ghcr.io/astral-sh/uv:latest
     steps:
@@ -52,7 +52,7 @@ jobs:
         run: bash ./dev mypy
 
   license-check:
-    runs-on: ubuntu:latest
+    runs-on: ubuntu-latest
     container:
       image: ghcr.io/astral-sh/uv:latest
     steps:
@@ -63,7 +63,7 @@ jobs:
         run: bash ./dev licenses
 
   coverage:
-    runs-on: ubuntu:latest
+    runs-on: ubuntu-latest
     container:
       image: ghcr.io/astral-sh/uv:latest
     services:
@@ -109,7 +109,7 @@ jobs:
       packages: write
     env:
       REGISTRY: ghcr.io
-    runs-on: ubuntu:latest
+    runs-on: ubuntu-latest
     container:
       image: ghcr.io/astral-sh/uv:latest
     strategy:
@@ -145,7 +145,7 @@ jobs:
 
   build-pages:
     needs: [lint-code, lint-doc, lint-scripts, mypy, coverage, license-check]
-    runs-on: ubuntu:latest
+    runs-on: ubuntu-latest
     container:
       image: ghcr.io/astral-sh/uv:latest
     steps:
