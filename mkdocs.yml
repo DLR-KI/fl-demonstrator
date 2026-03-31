@@ -119,12 +119,12 @@ extra:
       link: https://github.com/DLR-KI
 
 extra_javascript:
-  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js
-  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js
+  - https://cdn.jsdelivr.net/npm/katex@0.16.44/dist/katex.min.js
+  - https://cdn.jsdelivr.net/npm/katex@0.16.44/dist/contrib/auto-render.min.js
   - javascripts/katex.js
 
 extra_css:
-  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css
+  - https://cdn.jsdelivr.net/npm/katex@0.16.44/dist/katex.min.css
   - styles/style.css
 
 copyright: |
