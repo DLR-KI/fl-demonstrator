@@ -253,7 +253,7 @@ function lint-doc() {
   info "lint documentation"
   # use markdownlint from David Anson (based on nodejs)
   # https://github.com/DavidAnson/markdownlint
-  npm exec markdownlint-cli2 "${DOC_ROOT}/**/*.md" "${PROJECT_ROOT}/README.md"
+  npm exec "markdownlint-cli2@0.22.0" "${DOC_ROOT}/**/*.md" "${PROJECT_ROOT}/README.md"
 }
 
 function lint-scripts() {
