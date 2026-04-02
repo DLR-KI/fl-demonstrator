@@ -225,25 +225,23 @@ using = "PEP631"
 #using = "PEP631:dev;test;stubs;doc"
 zero = true
 ignore_packages = [
-  # Intel oneAPI Math Kernel Library (mkl)
-  # Comes with PyTorch 2.3.0
-  # https://cdrdv2-public.intel.com/749362/intel-simplified-license-software-october-2022.pdf
-  # Note: - Usage and Redistribution is allowed. But Redistribution requires a copyright notice
-  #       - The docker container do not include the mkl library (at the moment)
-  "mkl",
-  # https://docs.nvidia.com/cuda/eula/index.html
-  "nvidia-cublas-cu12",
-  "nvidia-cuda-cupti-cu12",
-  "nvidia-cuda-nvrtc-cu12",
-  "nvidia-cuda-runtime-cu12",
-  "nvidia-cudnn-cu12",
-  "nvidia-cufft-cu12",
-  "nvidia-curand-cu12",
-  "nvidia-cusolver-cu12",
-  "nvidia-cusparse-cu12",
-  "nvidia-nccl-cu12",
-  "nvidia-nvjitlink-cu12",
-  "nvidia-nvtx-cu12",
+  "cuda-bindings",
+  "cuda-toolkit",
+  "nvidia-cublas",
+  "nvidia-cuda-cupti",
+  "nvidia-cuda-nvrtc",
+  "nvidia-cuda-runtime",
+  "nvidia-cudnn-cu13",
+  "nvidia-cufft",
+  "nvidia-cufile",
+  "nvidia-curand",
+  "nvidia-cusolver",
+  "nvidia-cusparse",
+  "nvidia-cusparselt-cu13",
+  "nvidia-nccl-cu13",
+  "nvidia-nvjitlink",
+  "nvidia-nvshmem-cu13",
+  "nvidia-nvtx",
 ]
 
 #######################################################################################################################
