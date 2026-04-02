@@ -155,7 +155,7 @@ jobs:
   build-pages:
     needs: [lint-code, lint-doc, lint-scripts, mypy, coverage, license-check]
     runs-on: ubuntu-latest
-    environment:
+    env:
       DEPLOY: true
     steps:
       - uses: actions/checkout@v6

@@ -141,7 +141,7 @@ function clean() {
 function start() {
   docker compose up -d db redis
   migrate
-  python manage.py runserver
+  uv run python manage.py runserver
 }
 
 function celery() {
@@ -151,21 +151,21 @@ function celery() {
 }
 
 function migrate() {
-  python manage.py migrate
-  python manage.py check
+  uv run python manage.py migrate
+  uv run python manage.py check
 }
 
 function makemigrations() {
-  python manage.py makemigrations fl_server_core
+  uv run python manage.py makemigrations fl_server_core
 }
 
 function manage() {
-  python manage.py "$@"
+  uv run python manage.py "$@"
 }
 
 function superuser() {
 	DJANGO_SUPERUSER_PASSWORD="${DJANGO_SUPERUSER_PASSWORD:-"password"}" \
-    python manage.py createsuperuser --username admin --email "admin@example.com" --no-input
+    uv run python manage.py createsuperuser --username admin --email "admin@example.com" --no-input
 }
 
 function collectstatic() {
@@ -175,7 +175,7 @@ function collectstatic() {
   rm -rf static
   rm -rf "${BUILD_ROOT}/static"
   FL_DJANGO_SECRET_KEY="${FL_DJANGO_SECRET_KEY:-}" FL_POSTGRES_PASSWD="${FL_POSTGRES_PASSWD:-}" \
-    python manage.py collectstatic --settings "fl_server.settings.production"
+    uv run python manage.py collectstatic --settings "fl_server.settings.production"
   info "compressing static files"
   mkdir -p "${BUILD_ROOT}/static"
   info "  | create admin.tar.gz"
