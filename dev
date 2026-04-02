@@ -93,8 +93,11 @@ function version() {
 
 function versions() {
   info "versions"
-  # info "$(python --version)" <- not necessarily the uv python
-  info "$(uv --version)"
+  if ! command -v docker > /dev/null 2>&1; then
+    warn "uv not found, skipping uv version"
+  else
+    info "uv version: $(uv --version)"
+  fi
   if ! command -v docker > /dev/null 2>&1; then
     warn "docker not found, skipping docker version"
   else
@@ -116,13 +119,7 @@ function install() {
     curl -LsSf https://astral.sh/uv/install.sh | sh
   fi
   info "install package"
-  uv sync --editable --all-extras
-  info "install markdown linter"
-  if command -v npm > /dev/null 2>&1; then
-    npm install --no-save markdownlint-cli2
-  else
-    warn "npm not found, skipping markdownlint-cli2 installation"
-  fi
+  uv sync --all-extras
 }
 
 function clean() {
@@ -253,14 +250,14 @@ function lint-doc() {
   info "lint documentation"
   # use markdownlint from David Anson (based on nodejs)
   # https://github.com/DavidAnson/markdownlint
-  npm exec "markdownlint-cli2@0.22.0" "${DOC_ROOT}/**/*.md" "${PROJECT_ROOT}/README.md"
+  npm exec "markdownlint-cli2@0.22.0" -- "${DOC_ROOT}/**/*.md" "${PROJECT_ROOT}/README.md"
 }
 
 function lint-scripts() {
   info "lint bash scripts"
-  info "shellcheck $(shellcheck --version | head -n 2 | tail -n 1)"
-  shellcheck --external-sources --shell bash --source-path "${PROJECT_ROOT}" "${PROJECT_ROOT}/dev"
-  shellcheck --external-sources --shell bash --source-path "${SCRIPTS_ROOT}" "${SCRIPTS_ROOT}/"*.sh
+  info "shellcheck $(uv run shellcheck --version | head -n 2 | tail -n 1)"
+  uv run shellcheck --external-sources --shell bash --source-path "${PROJECT_ROOT}" "${PROJECT_ROOT}/dev"
+  uv run shellcheck --external-sources --shell bash --source-path "${SCRIPTS_ROOT}" "${SCRIPTS_ROOT}/"*.sh
 }
 
 function mypy() {
@@ -328,10 +325,6 @@ function safety-check() {
   info "check dependencies for known security vulnerabilities"
   # main only no dev dependencies etc.
   uv run tox --recreate -e safety
-  # alternative
-  #uv pip install -U safety
-  #safety check
-  ##uv pip uninstall safety
 }
 
 

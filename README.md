@@ -29,46 +29,16 @@ They offer a more user-friendly interface and comprehensive guides to get you st
 
 ## Requirements
 
-### Python > 3.10
-
-```bash
-sudo apt install python<version>
-#If not available you can add latest versions with
-sudo add-apt-repository ppa:deadsnakes/ppa 
-```
-
-### Venv
-
-```bash
-#Install venv
-sudo apt install python<version>-venv
-```
-
-### Virtualenv (alternative to venv)
-
-```bash
-#python 3.10 or later
-which python
-#virtualenv or venv
-pip install -U virtualenv
-```
+- Python 3.10 or later  
+  `which python`
+- [uv](https://docs.astral.sh/uv/)  
+  `curl -LsSf https://astral.sh/uv/install.sh | sh`
 
 ## Install
 
 ```bash
-# create virtual environment
-virtualenv -p $(which python<version>) .venv
-# or
-python<version> -m venv .venv
-
-# activate our virtual environment
-source .venv/bin/activate
-
-# update pip (optional)
-python -m pip install -U pip
-
-# install
-./dev install -U -e ".[all]"
+# create virtual environment and install dependencies
+./dev install
 ```
 
 ## Helpers
