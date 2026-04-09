@@ -1,6 +1,4 @@
-# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
-# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
-#
+# SPDX-FileCopyrightText: 2026 German Aerospace Center (DLR)
 # SPDX-License-Identifier: Apache-2.0
 
 [project]
@@ -8,9 +6,7 @@
 # package, this name will be registered for you. It will determine how
 # users can install this project, e.g.:
 #
-# $ pip install fl-demonstrator
-#
-# And where it will live on PyPI: https://pypi.org/project/fl-demonstrator/
+# $ uv add "fl-demonstrator @ git+https://github.com/DLR-KI/fl-demonstrator.git"
 #
 # There are some restrictions on what makes a valid project name
 # specification here:
@@ -22,7 +18,7 @@ name = "fl-demonstrator"  # Required
 #
 # For a discussion on single-sourcing the version, see
 # https://packaging.python.org/guides/single-sourcing-package-version/
-version = "1.0.0"  # Required
+version = "1.0.1"  # Required
 
 # This is a one-line description or tagline of what your project does. This
 # corresponds to the "Summary" metadata field:
@@ -45,10 +41,14 @@ readme = "README.md" # Optional
 # https://packaging.python.org/guides/distributing-packages-using-setuptools/#python-requires
 requires-python = ">=3.10"
 
-# This is either text indicating the license for the distribution, or a file
-# that contains the license
-# https://packaging.python.org/en/latest/specifications/core-metadata/#license
-license = {file = "LICENSES/Apache-2.0.txt"}
+# SPDX license expression indicating the license for the distribution.
+# Value is mapped to the License-Expression field in the core metadata.
+# https://packaging.python.org/en/latest/specifications/core-metadata/#license-expression
+license = "Apache-2.0"
+
+# License file paths relative to the project root directory.
+# https://packaging.python.org/en/latest/specifications/core-metadata/#license-expression
+license-files = ["LICENSE.md", "LICENSES/*"]
 
 # This field adds keywords for your project which will appear on the
 # project page. What does your project relate to?
@@ -88,15 +88,15 @@ classifiers = [  # Optional
   "Topic :: Scientific/Engineering",
   "Operating System :: OS Independent",
 
-  # Pick your license as you wish
-  "License :: OSI Approved :: Apache Software License",
-
   # Specify the Python versions you support here. In particular, ensure
   # that you indicate you support Python 3. These classifiers are *not*
   # checked by "pip install". See instead "python_requires" below.
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Programming Language :: Python :: 3 :: Only",
 ]
 
@@ -107,58 +107,69 @@ classifiers = [  # Optional
 # For an analysis of this field vs pip's requirements files see:
 # https://packaging.python.org/discussions/install-requires-vs-requirements/
 dependencies = [ # Optional
-  "celery~=5.3.0",
-  "django~=4.0.0",
-  "django-cors-headers~=4.1.0",
-  "django-polymorphic~=3.1.0",
-  "django-redis~=5.2.0",
-  "djangorestframework~=3.14.0",
-  "docstring-parser~=0.15",
-  "drf-spectacular~=0.26.3",
+  "celery>=5.3.0",
+  "django>=4.0.0",
+  "django-cors-headers>=4.1.0",
+  "django-polymorphic>=3.1.0",
+  "django-redis>=5.2.0",
+  "djangorestframework>=3.14.0",
+  "docstring-parser>=0.15",
+  "drf-spectacular>=0.26.3",
   "dlr-logging @ git+https://github.com/DLR-KI/fl-logging-base.git@main",  # noqa: E501
-  "Faker~=20.1.0",  # dummy data generation
-  "marshmallow~=3.19.0",
-  "numpy~=1.24.3",
-  "psycopg2-binary~=2.9.6",  # cspell:ignore psycopg
-  "requests~=2.31.0",
-  "torch~=2.3",
-  "torchinfo~=1.8",
-  "torchvision~=0.18",
+  "Faker>=20.1.0",  # dummy data generation
+  "marshmallow>=3.19.0",
+  "numpy>=1.24.3",
+  "psycopg2-binary>=2.9.6",  # cspell:ignore psycopg
+  "requests>=2.31.0",
+  "torch>=2.3",
+  "torchinfo>=1.8",
+  "torchvision>=0.18",
+  "types-pyyaml>=6.0.12.20250915",
 ]
 
 # List additional groups of dependencies here (e.g. development
 # dependencies). Users will be able to install these using the "extras"
 # syntax, for example:
 #
-#   $ pip install -e ".[all]"
+#   $ uv sync --all-extras
 #
 # Similar to `dependencies` above, these must be valid existing
 # projects.
 [project.optional-dependencies] # Optional
 dev = [
-  "pre-commit~=3.3.2",
-  "reuse~=4.0.3",
-  "tox~=4.5.1",
+  "pre-commit",
+  "reuse",
+  "tox",
+  "uv",
 ]
 test = [
-  "autopep8~=2.0.2",
-  "coverage~=7.2.7",
-  "flake8~=6.0.0",
-  "flake8-pyproject~=1.2.3",
-  "licensecheck",  # no version, install latest version
-  "mypy~=1.3.0",
-  "pytest-django~=4.5.2",
-  "responses~=0.23.1",
-  "shellcheck-py~=0.9.0.6",
+  "autopep8",
+  "coverage",
+  "flake8",
+  "flake8-pyproject",
+  "licensecheck",
+  "mypy",
+  "pytest-django",
+  "responses",
+  "shellcheck-py",
 ]
 stubs = [
-  "celery-types~=0.17.0",
-  "types-requests~=2.31.0",
-  "types-tabulate~=0.9.0.3",
+  "celery-types",
+  "types-requests",
+  "types-tabulate",
 ]
 doc = [
-  "portray @ git+https://github.com/HeinrichAD/portray.git@v1.8.0-dev",
-  #"plantuml-markdown~=3.9.2",  # post-install: cp plantuml_markdown.py into markdown/extensions
+  "mkdocs",
+  "mkdocs-awesome-pages-plugin",
+  "mkdocs-git-revision-date-localized-plugin",
+  "mkdocs-material",
+  "mkdocs-video",
+  "mkdocs-minify-plugin",
+  "mkdocs-api-autonav",
+  "mkdocstrings",
+  "mkdocstrings-python",
+  "pymdown-extensions",
+  "mkdocs-coverage>=2.0.0",
 ]
 all = ["fl-demonstrator[dev,test,stubs,doc]"]
 
@@ -197,7 +208,6 @@ packages = ["fl_server", "fl_server_ai", "fl_server_api", "fl_server_core"]
 #  "fl_server_api" = ["py.typed"],
 #  "fl_server_core" = ["py.typed"],
 #}
-license-files = ["LICENSES/*.txt"]
 
 [build-system]
 # These are the assumed default build requirements from pip:
@@ -215,25 +225,23 @@ using = "PEP631"
 #using = "PEP631:dev;test;stubs;doc"
 zero = true
 ignore_packages = [
-  # Intel oneAPI Math Kernel Library (mkl)
-  # Comes with PyTorch 2.3.0
-  # https://cdrdv2-public.intel.com/749362/intel-simplified-license-software-october-2022.pdf
-  # Note: - Usage and Redistribution is allowed. But Redistribution requires a copyright notice
-  #       - The docker container do not include the mkl library (at the moment)
-  "mkl",
-  # https://docs.nvidia.com/cuda/eula/index.html
-  "nvidia-cublas-cu12",
-  "nvidia-cuda-cupti-cu12",
-  "nvidia-cuda-nvrtc-cu12",
-  "nvidia-cuda-runtime-cu12",
-  "nvidia-cudnn-cu12",
-  "nvidia-cufft-cu12",
-  "nvidia-curand-cu12",
-  "nvidia-cusolver-cu12",
-  "nvidia-cusparse-cu12",
-  "nvidia-nccl-cu12",
-  "nvidia-nvjitlink-cu12",
-  "nvidia-nvtx-cu12",
+  "cuda-bindings",
+  "cuda-toolkit",
+  "nvidia-cublas",
+  "nvidia-cuda-cupti",
+  "nvidia-cuda-nvrtc",
+  "nvidia-cuda-runtime",
+  "nvidia-cudnn-cu13",
+  "nvidia-cufft",
+  "nvidia-cufile",
+  "nvidia-curand",
+  "nvidia-cusolver",
+  "nvidia-cusparse",
+  "nvidia-cusparselt-cu13",
+  "nvidia-nccl-cu13",
+  "nvidia-nvjitlink",
+  "nvidia-nvshmem-cu13",
+  "nvidia-nvtx",
 ]
 
 #######################################################################################################################

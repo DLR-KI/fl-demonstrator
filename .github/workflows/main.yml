@@ -1,6 +1,4 @@
-# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
-# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
-#
+# SPDX-FileCopyrightText: 2026 German Aerospace Center (DLR)
 # SPDX-License-Identifier: Apache-2.0
 
 name: Main
@@ -13,58 +11,59 @@ jobs:
   lint-code:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
-          python-version: '3.10'
-          cache: 'pip'
+          python-version: "3.10"
       - name: Install dependencies
-        run: bash ./dev install -e ".[all]"
+        run: uv sync --all-extras
       - name: Start static code analysis
         run: bash ./dev lint-code
 
   lint-doc:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 'lts/hydrogen'
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
       - name: Install dependencies
-        run: npm install markdownlint-cli2
+        run: npm install --no-save "markdownlint-cli2@0.22.0"
       - name: Start type checking
         run: bash ./dev lint-doc
 
   lint-scripts:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.10"
       - name: Start shell script analysis tool
         run: bash ./dev lint-scripts
 
   mypy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
-          python-version: '3.10'
-          cache: 'pip'
+          python-version: "3.10"
       - name: Install dependencies
-        run: bash ./dev install -e ".[all]"
+        run: uv sync --all-extras
       - name: Start type checking
         run: bash ./dev mypy
 
   license-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
-          python-version: '3.10'
-          cache: 'pip'
+          python-version: "3.10"
       - name: Install dependencies
-        run: bash ./dev install -e ".[all]"
+        run: uv sync --all-extras
       - name: Start license check
         run: bash ./dev licenses
 
@@ -93,13 +92,13 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
-          python-version: '3.10'
-          cache: 'pip'
+          python-version: "3.10"
       - name: Install dependencies
-        run: bash ./dev install -e ".[all]"
+        run: uv sync --all-extras
       - name: Start coverage
         env:
           FL_POSTGRES_HOST: localhost
@@ -123,16 +122,20 @@ jobs:
         docker_target: ['celery', 'django']
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.10"
       - name: Log in to the Container registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository }}-${{ matrix.docker_target }}
           tags: |
@@ -141,7 +144,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           file: ./docker/${{ matrix.docker_target }}/Dockerfile
           context: .
@@ -152,14 +155,16 @@ jobs:
   build-pages:
     needs: [lint-code, lint-doc, lint-scripts, mypy, coverage, license-check]
     runs-on: ubuntu-latest
+    env:
+      DEPLOY: true
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
-          python-version: '3.10'
-          cache: 'pip'
+          python-version: "3.10"
       - name: Install dependencies
-        run: bash ./dev install -e ".[all]"
+        run: uv sync --all-extras
       - name: Build pages
         run: bash ./dev doc-build
       - name: Fix permissions
@@ -168,7 +173,7 @@ jobs:
             echo "::warning title=Invalid file permissions automatically fixed::$line"
           done
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v4
         with:
           path: site
 
@@ -185,4 +190,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v3
+        uses: actions/deploy-pages@v4

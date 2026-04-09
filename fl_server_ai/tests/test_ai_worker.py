@@ -1,6 +1,4 @@
-# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
-# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
-#
+# SPDX-FileCopyrightText: 2026 German Aerospace Center (DLR)
 # SPDX-License-Identifier: Apache-2.0
 
 from django.test import TestCase
@@ -164,7 +162,7 @@ class AiWorkerTest(TestCase):
         training = Training.objects.get(id=training.id)
         self.assertFalse(training.locked)
         model = training.model
-        self.assertEquals(TrainingState.ONGOING, training.state)  # next would be ModelTestFinished
+        self.assertEqual(TrainingState.ONGOING, training.state)  # next would be ModelTestFinished
         fst = model.first_moment
         snd = model.second_moment
         torch.testing.assert_close(torch.zeros(15), fst)

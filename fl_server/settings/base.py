@@ -1,6 +1,4 @@
-# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
-# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
-#
+# SPDX-FileCopyrightText: 2026 German Aerospace Center (DLR)
 # SPDX-License-Identifier: Apache-2.0
 
 """
@@ -44,6 +42,7 @@ INSTALLED_APPS = [
     "fl_server_ai",
     "fl_server_api",
     "drf_spectacular",
+    "django.contrib.postgres",
 ]
 
 MIDDLEWARE = [

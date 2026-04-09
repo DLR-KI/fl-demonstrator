@@ -1,6 +1,4 @@
-# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
-# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
-#
+# SPDX-FileCopyrightText: 2026 German Aerospace Center (DLR)
 # SPDX-License-Identifier: Apache-2.0
 
 # This CITATION.cff file was generated with cffinit.
@@ -25,7 +23,7 @@ authors:
     orcid: 'https://orcid.org/0000-0003-0202-2804'
 identifiers:
   - type: doi
-    value: 10.5281/zenodo.13951205  
+    value: 10.5281/zenodo.13951205
 repository-code: 'https://github.com/DLR-KI/fl-demonstrator'
 url: 'https://dlr-ki.github.io/fl-demonstrator/'
 keywords:

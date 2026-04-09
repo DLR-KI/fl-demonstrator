@@ -1,6 +1,4 @@
-# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
-# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
-#
+# SPDX-FileCopyrightText: 2026 German Aerospace Center (DLR)
 # SPDX-License-Identifier: Apache-2.0
 
 from django.test import TestCase
@@ -19,9 +17,13 @@ def _create_torchscript_model_and_init(init: float) -> torch.jit.ScriptModule:
         torch.nn.BatchNorm1d(5),
         torch.nn.Linear(5, 3)
     )
+    assert isinstance(model[0].weight, torch.Tensor)
     torch.nn.init.constant_(model[0].weight, init)
+    assert isinstance(model[0].bias, torch.Tensor)
     torch.nn.init.constant_(model[0].bias, init)
+    assert isinstance(model[3].weight, torch.Tensor)
     torch.nn.init.constant_(model[3].weight, init)
+    assert isinstance(model[3].bias, torch.Tensor)
     torch.nn.init.constant_(model[3].bias, init)
     return torch.jit.script(model)
 

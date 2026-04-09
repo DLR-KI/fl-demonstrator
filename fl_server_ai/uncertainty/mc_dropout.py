@@ -1,6 +1,4 @@
-# SPDX-FileCopyrightText: 2024 Benedikt Franke <benedikt.franke@dlr.de>
-# SPDX-FileCopyrightText: 2024 Florian Heinrich <florian.heinrich@dlr.de>
-#
+# SPDX-FileCopyrightText: 2026 German Aerospace Center (DLR)
 # SPDX-License-Identifier: Apache-2.0
 
 import torch
@@ -26,6 +24,7 @@ def set_dropout(model: Module, state: bool = True):
     is_torchscript_model = is_torchscript_instance(model)
     for m in model.modules():
         name = m.original_name if is_torchscript_model else m.__class__.__name__
+        assert isinstance(name, str)
         if isinstance(m, _DropoutNd) or name.lower().__contains__("dropout"):
             m.train(mode=state)
 
