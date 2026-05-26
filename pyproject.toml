@@ -215,6 +215,9 @@ packages = ["fl_server", "fl_server_ai", "fl_server_api", "fl_server_core"]
 requires = ["setuptools>=43.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.uv]
+exclude-newer = "7 days"
+
 #######################################################################################################################
 
 # licensecheck
