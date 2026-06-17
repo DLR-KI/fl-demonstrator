@@ -99,3 +99,8 @@ SESSION_COOKIE_SECURE = True
 
 # Error reporting
 # https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/#error-reporting
+
+
+# Eclipse Dataspace Components (EDC) Settings
+
+EDC_API_KEY = get_secret("FL_EDC_API_KEY")

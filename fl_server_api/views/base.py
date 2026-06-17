@@ -1,10 +1,16 @@
 # SPDX-FileCopyrightText: 2026 German Aerospace Center (DLR)
 # SPDX-License-Identifier: Apache-2.0
 
+from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from logging import getLogger
-from rest_framework.authentication import BasicAuthentication, SessionAuthentication, TokenAuthentication
+from rest_framework.authentication import (
+    BaseAuthentication, BasicAuthentication, SessionAuthentication, TokenAuthentication
+)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ViewSet as DjangoViewSet
+
+from fl_server_core.models.user import Edc, get_edc_bpn_from_request
 
 
 class BasicAuthAllowingTokenAuthInUrl(BasicAuthentication):
@@ -34,6 +40,30 @@ class BasicAuthAllowingTokenAuthInUrl(BasicAuthentication):
         return super().authenticate_credentials(userid_or_token, password, request)
 
 
+class EDCAuthentication(BaseAuthentication):
+    def authenticate(self, request):
+        # 1. check EDC connector API key from settings
+        api_key = request.META.get("X-Api-Key", "")
+        if api_key != settings.EDC_API_KEY:
+            return None
+        # 2. get EDC user BPN and Contract-Agreement-Id from request header
+        bpn = get_edc_bpn_from_request(request)
+        if not bpn:
+            return None
+        # 3. get user from EDC settings via BPN
+        try:
+            edc = Edc.objects.get(pk=bpn)
+        except ObjectDoesNotExist:
+            return None
+        user = edc.user
+        if not user:
+            return None
+        return (user, None)
+
+    def authenticate_header(self, request):
+        return "EDC"
+
+
 class ViewSet(DjangoViewSet):
     """
     A base ViewSet that includes default authentication and permission classes.
@@ -46,11 +76,12 @@ class ViewSet(DjangoViewSet):
 
     _logger = getLogger("fl.server")
 
-    # Note: BasicAuthentication is sensles here since it will and can't never be called due to
+    # Note: BasicAuthentication is senseless here since it will and can't never be called due to
     #       BasicAuthAllowingTokenAuthInUrl but is required for OpenAPI to work.
     # Also note that the order of BasicAuthAllowingTokenAuthInUrl and BasicAuthentication is important
     # since if BasicAuthentication is first, Django won't ever call BasicAuthAllowingTokenAuthInUrl!
     authentication_classes = [
+        EDCAuthentication,
         TokenAuthentication,
         BasicAuthAllowingTokenAuthInUrl,
         BasicAuthentication,

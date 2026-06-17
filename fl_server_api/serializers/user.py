@@ -1,10 +1,12 @@
 # SPDX-FileCopyrightText: 2026 German Aerospace Center (DLR)
 # SPDX-License-Identifier: Apache-2.0
 
+from django.http import HttpRequest
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
 from fl_server_core.models import User
+from fl_server_core.models.user import create_edc_bpn
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -68,7 +70,7 @@ class UserSerializer(serializers.ModelSerializer):
             del data["token"]
         return data
 
-    def create(self, validated_data):
+    def create(self, validated_data, edc_bpn: str | HttpRequest | None) -> User:
         """
         Create a new User instance.
 
@@ -76,6 +78,7 @@ class UserSerializer(serializers.ModelSerializer):
 
         Args:
             validated_data (dict): The validated data for the new User instance.
+            edc_bpn (str | None): The users EDC BPN.
 
         Returns:
             User: The created User instance.
@@ -83,4 +86,6 @@ class UserSerializer(serializers.ModelSerializer):
         user = User.objects.create(**validated_data)
         user.set_password(validated_data["password"])
         user.save()
+        if edc_bpn:
+            create_edc_bpn(user, edc_bpn)
         return user

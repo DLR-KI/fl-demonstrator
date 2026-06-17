@@ -57,3 +57,8 @@ CACHES["redis"]["LOCATION"] = get_redis_location(fallback_host="localhost")  # n
 
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SECURE = True
+
+
+# Eclipse Dataspace Components (EDC) Settings
+
+EDC_API_KEY = "hanspetermayer"

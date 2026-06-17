@@ -2,11 +2,13 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import base64
+from django.conf import settings
 from django.test import TestCase
 from rest_framework.authtoken.models import Token
 from typing import Any, Dict, Optional, Union
 from uuid import uuid4
 
+from fl_server_core.models.user import create_edc_bpn
 from fl_server_core.tests import BASE_URL, Dummy
 from fl_server_core.models import User
 
@@ -146,3 +148,54 @@ class UserTests(TestCase):
             sorted([str(training.id) for training in trainings]),
             sorted([training["id"] for training in response_json])
         )
+
+    def test_get_user_via_edc_bpn(self):
+        user = Dummy.create_user()
+        edc = create_edc_bpn(user, "BPNLC03955YVFP6B")
+        self.client.defaults["X-Api-Key"] = settings.EDC_API_KEY
+        self.client.defaults["Edc-Bpn"] = edc.bpn
+        self.client.defaults["Edc-Contract-Agreement-Id"] = uuid4()
+        response = self.client.get(f"{BASE_URL}/users/")
+        self.assertEqual(200, response.status_code)
+        self.assertEqual("application/json", response["content-type"])
+        response_json = response.json()
+        self.assertEqual(1, len(response_json))
+        self.assertUserEqual(user, response_json[0])
+
+    def test_get_user_via_edc_bpn_without_contract_agreement_id(self):
+        user = Dummy.create_user()
+        edc = create_edc_bpn(user, "BPNLC03955YVFP6B")
+        self.client.defaults["X-Api-Key"] = settings.EDC_API_KEY
+        self.client.defaults["Edc-Bpn"] = edc.bpn
+        with self.assertLogs("django.request", level="WARNING") as cm:
+            response = self.client.get(f"{BASE_URL}/users/")
+        self.assertEqual(cm.output, [
+            "WARNING:django.request:Unauthorized: /api/users/",
+        ])
+        self.assertEqual(401, response.status_code)
+
+    def test_get_user_via_edc_bpn_with_incorrect_x_api_key(self):
+        user = Dummy.create_user()
+        edc = create_edc_bpn(user, "BPNLC03955YVFP6B")
+        self.client.defaults["X-Api-Key"] = "wrong-api-key"
+        self.client.defaults["Edc-Bpn"] = edc.bpn
+        self.client.defaults["Edc-Contract-Agreement-Id"] = uuid4()
+        with self.assertLogs("django.request", level="WARNING") as cm:
+            response = self.client.get(f"{BASE_URL}/users/")
+        self.assertEqual(cm.output, [
+            "WARNING:django.request:Unauthorized: /api/users/",
+        ])
+        self.assertEqual(401, response.status_code)
+
+    def test_get_user_via_edc_bpn_with_none_exiting_bpn(self):
+        user = Dummy.create_user()
+        create_edc_bpn(user, "BPNLC03955YVFP6B")
+        self.client.defaults["X-Api-Key"] = settings.EDC_API_KEY
+        self.client.defaults["Edc-Bpn"] = "none existing BPN"
+        self.client.defaults["Edc-Contract-Agreement-Id"] = uuid4()
+        with self.assertLogs("django.request", level="WARNING") as cm:
+            response = self.client.get(f"{BASE_URL}/users/")
+        self.assertEqual(cm.output, [
+            "WARNING:django.request:Unauthorized: /api/users/",
+        ])
+        self.assertEqual(401, response.status_code)

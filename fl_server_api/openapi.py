@@ -4,6 +4,7 @@
 from docstring_parser import Docstring, parse, RenderingStyle
 from docstring_parser.google import compose
 from drf_spectacular.authentication import BasicScheme
+from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from drf_spectacular.openapi import AutoSchema
 from drf_spectacular.utils import OpenApiExample, OpenApiResponse
 from inspect import cleandoc
@@ -19,7 +20,21 @@ class BasicAuthAllowingTokenAuthInUrlScheme(BasicScheme):
     """
 
     target_class = "fl_server_api.views.base.BasicAuthAllowingTokenAuthInUrl"
+    name = 'basicTokenAuth'
     priority = 0
+
+
+class EDCAuthenticationScheme(OpenApiAuthenticationExtension):
+    """
+    A class that enables EDC BPN authentication.
+    """
+
+    target_class = "fl_server_api.views.base.EDCAuthentication"
+    name = 'edcAuth'
+    priority = 0
+
+    def get_security_definition(self, auto_schema):
+        return {}
 
 
 def create_error_response(

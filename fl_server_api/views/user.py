@@ -115,7 +115,7 @@ class User(ViewSet):
         Returns:
             HttpResponse: new created user as json response
         """
-        user = UserSerializer().create(request.data)
+        user = UserSerializer().create(request.data, request)
         serializer = UserSerializer(user, context={"request_user_id": user.id})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
